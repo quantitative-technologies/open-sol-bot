@@ -1,5 +1,5 @@
 """
-缓存实现模块
+Cache implementation module
 
-此包包含所有具体的缓存实现类，每个类负责一种特定类型的缓存数据的更新和管理。
+This package contains all specific cache implementation classes, each class is responsible for the update and management of a specific type of cache data.
 """
