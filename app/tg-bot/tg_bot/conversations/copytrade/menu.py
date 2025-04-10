@@ -2,7 +2,6 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
-
 from tg_bot.conversations.copytrade.render import render
 from tg_bot.conversations.states import CopyTradeStates
 from tg_bot.services.copytrade import CopyTradeService
@@ -41,7 +40,7 @@ async def stop_all_copytrade(callback: CallbackQuery, state: FSMContext):
         await CopyTradeService().inactive_all(callback.from_user.id)
     except Exception as e:
         logger.exception(e)
-        msg = await callback.message.answer("停止全部跟单失败, 请稍后重试")
+        msg = await callback.message.answer("Stop all orders failed, please try again later")
         await delete_later(msg)
 
     data = await render(callback)

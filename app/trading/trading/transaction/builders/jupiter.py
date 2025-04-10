@@ -4,7 +4,6 @@ from solbot_common.constants import SOL_DECIMAL, WSOL
 from solbot_common.utils.jupiter import JupiterAPI
 from solders.keypair import Keypair  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
-
 from trading.swap import SwapDirection, SwapInType
 from trading.tx import sign_transaction_from_raw
 
@@ -12,7 +11,7 @@ from .base import TransactionBuilder
 
 
 class JupiterTransactionBuilder(TransactionBuilder):
-    """Jupiter 交易构建器"""
+    """Jupiter Transaction Builder"""
 
     def __init__(self, rpc_client: AsyncClient) -> None:
         super().__init__(rpc_client=rpc_client)

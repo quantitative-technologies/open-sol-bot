@@ -1,3 +1,4 @@
+import asyncio
 from typing import cast
 
 from aiogram import F, Router
@@ -9,11 +10,11 @@ from solbot_common.utils import keypair_to_private_key
 from solbot_db.session import start_async_session
 from solbot_services.bot_setting import BotSettingService as SettingService
 from solders.keypair import Keypair  # type: ignore
-
 from tg_bot.conversations.states import WalletStates
 from tg_bot.keyboards.wallet import new_wallet_keyboard
 from tg_bot.services.user import UserService
-from tg_bot.templates import render_export_wallet_message, render_new_wallet_message
+from tg_bot.templates import (render_export_wallet_message,
+                              render_new_wallet_message)
 from tg_bot.utils import delete_later
 from tg_bot.utils.message import invalid_input_and_request_reinput
 from tg_bot.utils.solana import validate_solana_private_key
@@ -87,7 +88,7 @@ async def import_wallet(callback: CallbackQuery, state: FSMContext):
     if callback.message.bot is None:
         logger.warning("No bot found in message")
         return
-    msg = await callback.message.answer("请导入新钱包私钥", reply_markup=ForceReply())
+    msg = await callback.message.answer("Please enter new wallet private key", reply_markup=ForceReply())
     await callback.message.bot.delete_message(
         chat_id=original_chat_id, message_id=original_message_id
     )
@@ -126,24 +127,18 @@ async def handle_new_private_key(message: Message, state: FSMContext):
             default_private_key = keypair_to_private_key(default_keypair)
             if default_private_key == new_private_key:
                 await invalid_input_and_request_reinput(
-                    text="⚠️ 新钱包私钥与当前默认钱包私钥相同，无需更新，请重新输入",
+                    text="⚠️ New wallet private key is the same as current default wallet, no update needed, please re-enter",
                     last_message=message,
                     state=state,
                 )
                 return
 
-            # 删除包含私钥的消息
+            # Delete message containing private key
             await message.delete()
 
             default_pubkey = default_keypair.pubkey().__str__()
-            # NOTE: 删除之前的默认钱包，后续会支持多个钱包
-            #  多钱包的场景下，则将该钱包设置为非默认钱包，并需要对重复钱包的导入做进一步的校验
-            # await user_service.set_default(
-            #     chat_id=message.from_user.id,
-            #     pubkey=default_pubkey,
-            #     is_default=False,
-            #     session=session,
-            # )
+            # NOTE: Delete previous default wallet, will support multiple wallets later
+            # For multiple wallets, set this wallet as non-default and add additional validation for duplicate wallet imports
             await user_service.delete_wallet(
                 chat_id=message.from_user.id,
                 pubkey=default_pubkey,
@@ -156,14 +151,14 @@ async def handle_new_private_key(message: Message, state: FSMContext):
                 is_default=True,
                 session=session,
             )
-            # 为这个钱包创建默认配置
+            # Create default settings for this wallet
             await SettingService().create_default(
                 chat_id=message.from_user.id,
                 wallet_address=new_keypair.pubkey().__str__(),
             )
     except Exception as e:
         logger.exception(e)
-        await message.answer("导入新钱包私钥失败，请重试")
+        await message.answer("Failed to import new wallet private key, please try again")
         return
 
     data = await state.get_data()
@@ -175,9 +170,9 @@ async def handle_new_private_key(message: Message, state: FSMContext):
     await message.bot.delete_message(chat_id=prompt_chat_id, message_id=prompt_message_id)
 
     await state.clear()
-    await message.answer("导入新钱包私钥成功")
+    await message.answer("Successfully imported new wallet private key")
 
-    # 启动主菜单
+    # Start main menu
     from tg_bot.conversations.home.command import start
 
     await start(message, state)

@@ -1,15 +1,14 @@
 import asyncio
 
-from solbot_common.log import logger
-from solbot_db.redis import RedisClient
-
 from cache_preloader.caches.blockhash import BlockhashCache
 from cache_preloader.caches.min_balance_rent import MinBalanceRentCache
 from cache_preloader.core.protocols import AutoUpdateCacheProtocol
+from solbot_common.log import logger
+from solbot_db.redis import RedisClient
 
 
 class AutoUpdateCacheService:
-    """自动更新缓存服务"""
+    """Automatically update cache service"""
 
     def __init__(self):
         self.redis_client = RedisClient.get_instance()
@@ -22,15 +21,15 @@ class AutoUpdateCacheService:
         self._main_task = None
 
     async def start(self):
-        """启动缓存服务"""
+        """Start cache service"""
         try:
             logger.info("Starting auto-update cache service...")
-            # 启动所有缓存服务
+            # Start all cache services
             await asyncio.gather(*[cache.start() for cache in self.auto_update_caches])
 
-            # 创建主监控任务
+            # Create a main monitoring task
             self._main_task = asyncio.create_task(self._monitor())
-            # 等待关闭信号
+            # Wait for shutdown signal
             await self._shutdown_event.wait()
 
         except asyncio.CancelledError:
@@ -41,27 +40,27 @@ class AutoUpdateCacheService:
             await self.stop()
 
     async def _monitor(self):
-        """监控所有缓存服务的状态"""
+        """Monitor the status of all cache services"""
         try:
             while not self._shutdown_event.is_set():
-                # 检查所有缓存是否正常运行
+                # Check if all caches are running
                 for cache in self.auto_update_caches:
                     if not cache.is_running():
                         logger.warning(f"{cache.__class__.__name__} is not running, restarting...")
                         await cache.start()
-                # 每分钟检查一次
+                # Check every minute
                 await asyncio.sleep(60)
         except asyncio.CancelledError:
             pass
 
     async def stop(self):
-        """停止缓存服务"""
+        """Stop cache service"""
         logger.info("Stopping auto-update cache service...")
 
-        # 设置关闭信号
+        # Set shutdown signal
         self._shutdown_event.set()
 
-        # 取消主监控任务
+        # Cancel main monitoring task
         if self._main_task and not self._main_task.done():
             self._main_task.cancel()
             try:
@@ -69,11 +68,11 @@ class AutoUpdateCacheService:
             except asyncio.CancelledError:
                 pass
 
-        # 停止所有缓存服务
+        # Stop all cache services
         await asyncio.gather(
             *[cache.stop() for cache in self.auto_update_caches], return_exceptions=True
         )
 
-        # 记录停止日志
+        # Record stop log
         for cache in self.auto_update_caches:
             logger.info(f"Stopped {cache.__class__.__name__}")

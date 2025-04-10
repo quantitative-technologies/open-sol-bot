@@ -7,7 +7,6 @@ from solbot_cache.token_info import TokenInfoCache
 from solbot_common.config import settings
 from solbot_common.log import logger
 from solbot_services.bot_setting import BotSettingService as SettingService
-
 from tg_bot.conversations.swap.render import render as render_swap
 from tg_bot.keyboards.main_menu import main_menu_keyboard
 from tg_bot.services.activation import ActivationCodeService
@@ -90,7 +89,7 @@ async def start_asset(token_mint: str, message: types.Message, state: FSMContext
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await message.answer("❌ 无法查询到该代币信息")
+        await message.answer("❌ Unable to query the token information")
         return
     logger.info(f"New Found Token Info: {token_info}")
 
@@ -129,6 +128,6 @@ async def start(message: types.Message, state: FSMContext):
         token_info_cache = TokenInfoCache()
         token_info = await token_info_cache.get(arg)
         if token_info is None:
-            await message.answer("❌ 无法查询到该代币信息")
+            await message.answer("❌ Unable to query the token information")
             return
         await start_asset(token_info.mint, message, state)

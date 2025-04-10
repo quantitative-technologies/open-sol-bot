@@ -5,7 +5,6 @@ from aiogram.enums import ParseMode
 from solbot_cache.wallet import WalletCache
 from solbot_common.config import settings
 from solbot_common.utils.shyft import ShyftAPI
-
 from tg_bot.keyboards.main_menu import main_menu_keyboard
 from tg_bot.services.activation import ActivationCodeService
 from tg_bot.services.user import UserService
@@ -18,17 +17,17 @@ activation_code_service = ActivationCodeService()
 
 
 async def render(update: types.Message | types.CallbackQuery) -> dict:
-    """渲染主页消息
+    """Render home page message
 
     Args:
-        update: 可以是 Message（用户发送 /start）或 CallbackQuery（用户点击返回按钮）
+        update: Can be Message (user sends /start) or CallbackQuery (user clicks return button)
     """
-    # 获取用户信息
+    # Get user information
     if isinstance(update, types.CallbackQuery):
-        # 从回调查询中获取用户信息
+        # Get user info from callback query
         user = update.from_user
     else:
-        # 从消息中获取用户信息
+        # Get user info from message
         user = update.from_user
 
     if user is None:
@@ -41,7 +40,7 @@ async def render(update: types.Message | types.CallbackQuery) -> dict:
     expiration_datetime = None
     if settings.tg_bot.mode == "private":
         remaining_time = await activation_code_service.get_user_expired_timestamp(user.id)
-        # -> 年-月-日 时:分:秒
+        # -> Year-Month-Day Hour:Minute:Second
         expiration_datetime = datetime.fromtimestamp(remaining_time).strftime("%Y-%m-%d %H:%M:%S")
 
     return {

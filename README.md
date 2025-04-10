@@ -84,7 +84,7 @@ cp example.config.toml config.toml
 
 - `tg_bot.token`: Telegram Bot Token（[如何创建 Bot Token](https://core.telegram.org/bots#how-do-i-create-a-bot)）
 - `rpc.endpoints`: RPC 节点列表，建议使用私有 RPC 节点，例如：Helius、Quicknode 等
-- `api`: API 配置, 包括 [Helius](https://helius.dev) 和 [Shyft](https://shyft.to)，这些 API 有一定的免费额度，对于个人而言已经足够了。
+- `api`: API configuration, including [Helius](https://helius.dev) and [Shyft](https://shyft.to). These APIs have certain free quotas that are sufficient for personal use.
   ```
   [api]
   helius_api_base_url = "https://api.helius.xyz/v0"
@@ -92,15 +92,15 @@ cp example.config.toml config.toml
   shyft_api_base_url = "https://api.shyft.to"
   shyft_api_key = ""
   ```
-- `db`: 数据库连接配置，默认配置适用于本地开发环境。在 Docker 环境中会自动使用容器别名。
+- `db`: Database connection configuration. Default configuration is suitable for local development environment. In Docker environment, container aliases will be used automatically.
   ```
   [db]
-  # 本地开发环境（从源码运行）
+  # Local development environment (running from source)
   mysql_url = "mysql+pymysql://root:root@127.0.0.1:3307/solana_trade_bot"
   redis_url = "redis://127.0.0.1:6380/0"
   ```
 
-> 💡 为了获得更快的跟单速度，默认使用 `geyser` 模式，同时也支持 WebSocket 订阅方式
+> 💡 For faster copy trading speed, `geyser` mode is used by default, while WebSocket subscription is also supported
 
 ## 🚀 使用说明
 

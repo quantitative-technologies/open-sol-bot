@@ -1,6 +1,5 @@
 from aiogram import F, Router, types
 from solbot_common.log import logger
-
 from tg_bot.utils.setting import get_wallet
 
 from .render import render
@@ -24,6 +23,6 @@ async def asset(callback: types.CallbackQuery):
         render_data = await render(wallet)
     except Exception as e:
         logger.exception(e)
-        await callback.answer("❌ 获取资产列表失败，请重试")
+        await callback.answer("❌ Failed to obtain the asset list, please try again")
         return
     await callback.message.edit_text(**render_data)

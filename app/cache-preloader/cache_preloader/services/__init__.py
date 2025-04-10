@@ -1,5 +1,5 @@
 """
-服务模块
+Service Module
 
-此包包含缓存预加载服务的实现，负责协调和管理各种缓存的更新。
+This package contains the implementation of cache preloading services, responsible for coordinating and managing various cache updates.
 """

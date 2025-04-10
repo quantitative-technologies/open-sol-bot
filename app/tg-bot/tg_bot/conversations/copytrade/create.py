@@ -7,7 +7,6 @@ from aiogram.types import CallbackQuery, ForceReply, Message
 from loguru import logger
 from solbot_common.types.copytrade import CopyTrade
 from solbot_services.bot_setting import BotSettingService as SettingService
-
 from tg_bot.conversations.copytrade.render import render
 from tg_bot.conversations.states import CopyTradeStates
 from tg_bot.keyboards.copytrade import create_copytrade_keyboard
@@ -74,7 +73,7 @@ async def start_set_address(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入要跟单的目标钱包地址：",
+        "👋 Please enter the target wallet address for copy trading:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -165,7 +164,7 @@ async def start_set_alias(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入钱包别名：",
+        "👋 Please enter wallet alias:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -241,7 +240,7 @@ async def start_set_fixed_buy_amount(callback: CallbackQuery, state: FSMContext)
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入固定买入数量：",
+        "👋 Please enter fixed buy amount:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -444,7 +443,7 @@ async def start_set_priority(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入优先费用:",
+        "👋 Please enter priority fee:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -476,7 +475,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
     try:
         priority = float(priority)
     except ValueError:
-        msg = await message.answer("❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply())
+        msg = await message.answer("❌ Invalid priority fee, please enter again:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -602,7 +601,7 @@ async def start_set_custom_slippage(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入自定义滑点:",
+        "👋 Please enter custom slippage:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )

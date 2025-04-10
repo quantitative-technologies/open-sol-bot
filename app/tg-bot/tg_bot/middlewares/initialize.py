@@ -4,7 +4,6 @@ from typing import Any
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
-
 from tg_bot.services.user import UserService
 
 
@@ -34,7 +33,7 @@ class InitializeMiddleware(BaseMiddleware):
         is_registered = await user_service.is_registered(user_id)
         if not is_registered:
             logger.warning(f"User {user_id} is not registered")
-            await event.answer("⚠️  您还未初始化账户，请先点击 /start 初始化")
+            await event.answer("⚠️ Your account is not initialized, please click /start to initialize")
             return
 
         return await handler(event, data)

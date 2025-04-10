@@ -9,7 +9,6 @@ from solbot_common.types.swap import SwapEvent
 from solbot_common.utils import calculate_auto_slippage
 from solbot_db.redis import RedisClient
 from solbot_services.bot_setting import BotSettingService as SettingService
-
 from tg_bot.services.user import UserService
 from tg_bot.templates import BUY_SELL_TEMPLATE
 from tg_bot.utils.solana import validate_solana_address
@@ -22,7 +21,7 @@ token_info_cache = TokenInfoCache()
 
 
 async def info_command(message: Message):
-    """发送 Token Addres，回复代币交易界面"""
+    """Send Token Address, reply with token trading interface"""
     logger.debug(message)
     if message.from_user is None:
         logger.warning("No message found in update")
@@ -36,13 +35,13 @@ async def info_command(message: Message):
     valid = validate_solana_address(text)
     if not valid:
         await message.answer(
-            text="❌ 无效的 Token Address，请重新输入：",
+            text="❌ Invalid Token Address, please re-enter:",
         )
         return
 
     token_info = await token_info_cache.get(text)
     if token_info is None:
-        logger.info(f"❌ 未找到 {text} 代币信息")
+        logger.info(f"❌ Could not find token information for {text}")
         return
 
     chat_id = message.from_user.id
@@ -80,7 +79,7 @@ async def swap_command(message: Message):
         cmd, token_mint, ui_amount = text.split()
     except ValueError:
         await message.answer(
-            text="❌ 输入格式错误，请重新输入：",
+            text="❌ Invalid input format, please re-enter:",
         )
         return
 
@@ -88,7 +87,7 @@ async def swap_command(message: Message):
 
     if cmd not in ["buy", "sell"]:
         await message.answer(
-            text="❌ 输入格式错误，请重新输入：",
+            text="❌ Invalid input format, please re-enter:",
         )
         return
 
@@ -101,7 +100,7 @@ async def swap_command(message: Message):
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await message.answer("❌ 无法查询到该代币信息")
+        await message.answer("❌ Unable to query token information")
         return
 
     if cmd == "buy":
@@ -112,7 +111,7 @@ async def swap_command(message: Message):
     else:
         if ui_amount.endswith("%"):
             await message.answer(
-                text="暂时不支持以百分比卖出",
+                text="Percentage-based selling is not supported yet",
             )
             return
         from_amount = int(float(ui_amount) * 10**token_info.decimals)
@@ -156,13 +155,13 @@ async def swap_command(message: Message):
 
     if cmd == "buy":
         await message.answer(
-            f"🚀 {token_info.symbol} 买 {ui_amount} SOL, 滑点：{slippage_bps / 100}%"
+            f"🚀 {token_info.symbol} Buy {ui_amount} SOL, Slippage: {slippage_bps / 100}%"
         )
         logger.info(
             f"Buy {ui_amount} SOL for {token_info.symbol}, slippage: {slippage_bps / 100} %"
         )
     else:
-        await message.answer(f"🚀 卖 {ui_amount} {token_info.symbol}, 滑点：{slippage_bps / 100}%")
+        await message.answer(f"🚀 Sell {ui_amount} {token_info.symbol}, Slippage: {slippage_bps / 100}%")
         logger.info(
-            f"Sell {ui_amount} {token_info.symbol} for  SOL, slippage: {slippage_bps / 100} %"
+            f"Sell {ui_amount} {token_info.symbol} for SOL, slippage: {slippage_bps / 100} %"
         )

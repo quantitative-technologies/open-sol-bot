@@ -8,7 +8,6 @@ from solbot_cache.token_info import TokenInfoCache
 from solbot_common.cp.copytrade_event import NotifyCopyTradeConsumer
 from solbot_common.log import logger
 from solbot_common.types.swap import SwapEvent
-
 from tg_bot.services.copytrade import CopyTradeService
 from tg_bot.services.user import UserService
 from tg_bot.utils.text import short_text
@@ -17,33 +16,33 @@ env = Environment(
     loader=BaseLoader(),
 )
 _BUY_TEMPLATE = env.from_string(
-    """🎯 触发跟单：买入
-🟢 {{wallet_name}} 买入 {{token_ui_amount}} ${{symbol}}
+    """🎯 Copy Trade Trigger: Buy
+🟢 {{wallet_name}} bought {{token_ui_amount}} ${{symbol}}
 
-钱包地址
+Wallet Address
 <code>{{wallet_address}}</code>
-代币地址
+Token Address
 <code>{{mint}}</code>
-<a href="https://solscan.io/tx/{{signature}}">查看交易</a>
+<a href="https://solscan.io/tx/{{signature}}">View Transaction</a>
 """
 )
 
 
 _SELL_TEMPLATE = env.from_string(
-    """🎯 触发跟单：卖出
-🔴 {{wallet_name}} 卖出 {{token_ui_amount}} ${{symbol}}
+    """🎯 Copy Trade Trigger: Sell
+🔴 {{wallet_name}} sold {{token_ui_amount}} ${{symbol}}
 
-钱包地址
+Wallet Address
 <code>{{wallet_address}}</code>
-代币地址
+Token Address
 <code>{{mint}}</code>
-<a href="https://solscan.io/tx/{{signature}}">查看交易</a>
+<a href="https://solscan.io/tx/{{signature}}">View Transaction</a>
 """
 )
 
 
 class CopyTradeNotify:
-    """跟单通知"""
+    """Copy Trade Notifications"""
 
     def __init__(
         self,
@@ -68,7 +67,7 @@ class CopyTradeNotify:
         self.token_info_cache = TokenInfoCache()
 
     async def _build_message(self, data: SwapEvent, chat_id: int) -> str:
-        """构建消息"""
+        """Build message"""
         if data.by != "copytrade":
             raise ValueError("Invalid by")
 
@@ -110,7 +109,7 @@ class CopyTradeNotify:
         )
 
     async def _handle_event(self, data: SwapEvent):
-        """处理交易事件"""
+        """Handle transaction event"""
         chat_ids = await self.user_service.get_chat_id_by_pubkey(data.user_pubkey)
 
         tasks = []
@@ -130,12 +129,12 @@ class CopyTradeNotify:
         await asyncio.gather(*tasks)
 
     async def start(self):
-        """启动跟单通知"""
-        # 创建任务但不等待它完成
+        """Start copy trade notifications"""
+        # Create task but don't wait for completion
         consumer_task = asyncio.create_task(self.consumer.start())
-        # 添加任务完成回调以处理可能的异常
+        # Add task completion callback to handle potential exceptions
         consumer_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
 
     def stop(self):
-        """停止跟单通知"""
+        """Stop copy trade notifications"""
         self.consumer.stop()

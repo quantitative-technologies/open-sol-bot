@@ -2,25 +2,25 @@
 
 DOCKER_EXEC := podman  # podman or docker
 
-# 安装开发依赖
+# Install development dependencies
 dev-deps:
 	uv sync
 
-# 基础设施服务
+# Infrastructure services
 infra-up:
 	$(DOCKER_EXEC) compose up -d mysql redis
 
 infra-down:
 	$(DOCKER_EXEC) compose down
 
-# 主要安装命令
+# Main installation commands
 install: dev-deps infra-up
-	@echo "🚀 项目初始化完成！"
-	@echo "💡 提示："
-	@echo "1. 使用 'make up' 启动所有服务"
-	@echo "2. 使用 'make down' 停止所有服务"
+	@echo "🚀 Project initialization complete!"
+	@echo "💡 Tips:"
+	@echo "1. Use 'make up' to start all services"
+	@echo "2. Use 'make down' to stop all services"
 
-# Docker 相关命令
+# Docker related commands
 build:
 	$(DOCKER_EXEC) compose build
 
@@ -30,7 +30,7 @@ up:
 down:
 	$(DOCKER_EXEC) compose down -v
 
-# 清理
+# Cleanup
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	find . -type d -name "*.egg-info" -exec rm -r {} +

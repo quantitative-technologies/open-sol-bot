@@ -5,7 +5,6 @@ from solbot_common.constants import SOL_DECIMAL, WSOL
 from solbot_common.utils.gmgn import GmgnAPI
 from solders.keypair import Keypair  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
-
 from trading.swap import SwapDirection, SwapInType
 from trading.tx import sign_transaction_from_raw
 
@@ -13,7 +12,7 @@ from .base import TransactionBuilder
 
 
 class GMGNTransactionBuilder(TransactionBuilder):
-    """GMGN 交易构建器"""
+    """GMGN Transaction Builder"""
 
     def __init__(self, rpc_client: AsyncClient) -> None:
         super().__init__(rpc_client=rpc_client)

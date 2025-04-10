@@ -2,10 +2,10 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message)
 from loguru import logger
 from solbot_common.config import settings
-
 from tg_bot.services.activation import ActivationCodeService
 
 
@@ -31,8 +31,8 @@ class AuthorizationMiddleware(BaseMiddleware):
             logger.warning("No user found in message")
             return
 
-        # 如果是有激活码，则验证激活码是否有效
-        # 如果是无激活码，则直接要求用户输入激活码
+        # If there is an activation code, verify if it is valid
+        # If there is no activation code, ask user to input activation code
         if isinstance(event, Message) and event.text is not None:
             message = event
             text = event.text.strip()
@@ -52,12 +52,12 @@ class AuthorizationMiddleware(BaseMiddleware):
         passed = False
         if user_license is None:
             await message.answer(
-                "这是一个私有机器人，请输入激活码以继续使用。\n如需获取激活码，请联系管理员。",
+                "This is a private bot. Please enter activation code to continue.\nTo get an activation code, please contact the administrator.",
                 reply_markup=InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
                             InlineKeyboardButton(
-                                text="输入激活码",
+                                text="Enter Activation Code",
                                 callback_data="start:activation_code",
                             )
                         ]
@@ -68,7 +68,7 @@ class AuthorizationMiddleware(BaseMiddleware):
             authorized = await activation_code_service.is_user_authorized(user_id)
             if authorized is False:
                 await message.answer(
-                    "❌ 激活码无效或已过期，请重试或联系管理员获取新的激活码。",
+                    "❌ Invalid or expired activation code. Please try again or contact administrator for a new code.",
                 )
             passed = True
 

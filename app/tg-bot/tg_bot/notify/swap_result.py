@@ -10,7 +10,6 @@ from solbot_common.cp.swap_result import SwapResultConsumer
 from solbot_common.log import logger
 from solbot_common.models.swap_record import TransactionStatus
 from solbot_common.types.swap import SwapResult
-
 from tg_bot.services.user import UserService
 
 env = Environment(
@@ -18,40 +17,40 @@ env = Environment(
 )
 
 _BUY_SUCCESS_TEMPLATE = env.from_string(
-    """✅ 购买成功
-├ 买入 {{token_ui_amount}} ${{symbol}}({{name}})
-├ 支出 {{sol_ui_amount}} SOL
-└ <a href="https://solscan.io/tx/{{signature}}">查看交易</a>
+    """✅ Buy Success
+├ Bought {{token_ui_amount}} ${{symbol}}({{name}})
+├ Spent {{sol_ui_amount}} SOL
+└ <a href="https://solscan.io/tx/{{signature}}">View Transaction</a>
 """
 )
 
 _BUY_FAILED_TEMPLATE = env.from_string(
-    """❌ 购买失败 ${{symbol}}({{name}})
+    """❌ Buy Failed ${{symbol}}({{name}})
 {%- if signature %}
-└ <a href="https://solscan.io/tx/{{signature}}">查看交易</a>
+└ <a href="https://solscan.io/tx/{{signature}}">View Transaction</a>
 {%- endif %}
 """
 )
 
 _SELL_SUCCESS_TEMPLATE = env.from_string(
-    """✅ 卖出成功
-├ 卖出 {{token_ui_amount}} ${{symbol}}({{name}})
-├ 收到 {{sol_ui_amount}} SOL
-└ <a href="https://solscan.io/tx/{{signature}}">查看交易</a>
+    """✅ Sell Success
+├ Sold {{token_ui_amount}} ${{symbol}}({{name}})
+├ Received {{sol_ui_amount}} SOL
+└ <a href="https://solscan.io/tx/{{signature}}">View Transaction</a>
 """
 )
 
 _SELL_FAILED_TEMPLATE = env.from_string(
-    """❌ 卖出失败 ${{symbol}}({{name}})
+    """❌ Sell Failed ${{symbol}}({{name}})
 {%- if signature %}
-└ <a href="https://solscan.io/tx/{{signature}}">查看交易</a>
+└ <a href="https://solscan.io/tx/{{signature}}">View Transaction</a>
 {%- endif %}
 """
 )
 
 
 class SwapResultNotify:
-    """用户交易结果通知"""
+    """User Transaction Result Notifications"""
 
     def __init__(
         self,
@@ -75,7 +74,7 @@ class SwapResultNotify:
         self.consumer.register_callback(self._handle_event)
 
     async def _build_message_for_copytrade(self, data: SwapResult) -> str:
-        """构建用于跟单交易结果的消息"""
+        """Build message for copy trade results"""
         event = data.swap_event
         if event.swap_mode == "ExactIn" or event.swap_mode == "ExactOut":
             pass
@@ -83,7 +82,7 @@ class SwapResultNotify:
             raise ValueError(f"Invalid swap_mode: {event.swap_mode}")
 
     async def _build_message_by_user_swap(self, data: SwapResult) -> str:
-        """构建用于用户主动交易结果的消息"""
+        """Build message for user-initiated trade results"""
         event = data.swap_event
         swap_record = data.swap_record
 
@@ -139,7 +138,7 @@ class SwapResultNotify:
                 )
 
     async def build_message(self, data: SwapResult) -> str:
-        """构建消息"""
+        """Build message"""
         if data.by == "copytrade":
             return await self._build_message_for_copytrade(data)
         elif data.by == "user":
@@ -171,11 +170,11 @@ class SwapResultNotify:
             logger.error(f"Failed to handle event: {e}")
 
     async def start(self):
-        """启动用户交易结果通知"""
+        """Start user transaction result notifications"""
         logger.info("Starting swap result notify")
         self._consumer_task = asyncio.create_task(self.consumer.start())
 
     def stop(self):
-        """停止用户交易结果通知"""
+        """Stop user transaction result notifications"""
         if hasattr(self, "_consumer_task"):
             self.consumer.stop()

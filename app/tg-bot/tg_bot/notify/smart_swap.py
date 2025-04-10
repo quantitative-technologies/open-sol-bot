@@ -1,6 +1,6 @@
-"""交易动向通知
+"""Transaction Direction Notifications
 
-跟单钱包或监听钱包的交易动向通知
+Notifications for copy trading wallet or monitored wallet transaction movements
 """
 
 import asyncio
@@ -15,7 +15,6 @@ from solbot_cache.token_info import TokenInfoCache
 from solbot_common.cp.tx_event import TxEventConsumer
 from solbot_common.log import logger
 from solbot_common.types import TxEvent, TxType
-
 from tg_bot.keyboards.notify_swap import notify_swap_keyboard
 from tg_bot.services.monitor import MonitorService
 from tg_bot.templates import render_notify_swap
@@ -23,7 +22,7 @@ from tg_bot.templates import render_notify_swap
 
 @dataclass
 class SwapMessage:
-    """通知消息"""
+    """Notification Message"""
 
     target_wallet: str
     tx_type_cn: str
@@ -41,25 +40,25 @@ class SwapMessage:
 
     @property
     def human_description(self) -> str:
-        """交易描述"""
+        """Transaction Description"""
         if self.wallet_alias is None:
             wallet_name = self.target_wallet[:5] + "..."
         else:
             wallet_name = self.wallet_alias
-        if self.tx_type_cn == "开仓":
-            return f"🟢 {wallet_name} 建仓 {self.to_amount} 个 {self.token_symbol}，花费 {self.from_amount} 个 SOL"
-        elif self.tx_type_cn == "加仓":
-            return f"🟢 {wallet_name} 加仓 {self.to_amount} 个 {self.token_symbol}，花费 {self.from_amount} 个 SOL"
-        elif self.tx_type_cn == "减仓":
-            return f"🔴 {wallet_name} 减仓 {self.from_amount} 个 {self.token_symbol}，花费 {self.to_amount} 个 SOL"
-        elif self.tx_type_cn == "清仓":
-            return f"🔴 {wallet_name} 清仓 {self.from_amount} 个 {self.token_symbol}，获得 {self.to_amount} 个 SOL"
+        if self.tx_type_cn == "Open":
+            return f"🟢 {wallet_name} opened position with {self.to_amount} {self.token_symbol}, spent {self.from_amount} SOL"
+        elif self.tx_type_cn == "Add":
+            return f"🟢 {wallet_name} added {self.to_amount} {self.token_symbol}, spent {self.from_amount} SOL"
+        elif self.tx_type_cn == "Reduce":
+            return f"🔴 {wallet_name} reduced {self.from_amount} {self.token_symbol}, received {self.to_amount} SOL"
+        elif self.tx_type_cn == "Close":
+            return f"🔴 {wallet_name} closed position of {self.from_amount} {self.token_symbol}, received {self.to_amount} SOL"
         else:
             raise ValueError(f"Invalid tx_type_cn: {self.tx_type_cn}")
 
 
 class SmartWalletSwapAlertNotify:
-    """聪明钱交易警告通知"""
+    """Smart Money Transaction Alert Notifications"""
 
     def __init__(
         self,
@@ -82,32 +81,32 @@ class SmartWalletSwapAlertNotify:
         self.monitor_service = MonitorService()
 
     async def build_swap_message(self, tx_event: TxEvent) -> SwapMessage:
-        """格式化交易消息"""
-        # 计算实际金额（考虑 decimals）
+        """Format transaction message"""
+        # Calculate actual amounts (considering decimals)
         from_amount = tx_event.from_amount / (10**tx_event.from_decimals)
         to_amount = tx_event.to_amount / (10**tx_event.to_decimals)
         pre_amount = tx_event.pre_token_amount / (10**tx_event.to_decimals)
         post_amount = tx_event.post_token_amount / (10**tx_event.to_decimals)
 
-        # 计算持仓变化
+        # Calculate position change
         position_change = post_amount - pre_amount
         position_change_formatted = (
             f"+{position_change:.4f}" if position_change > 0 else f"{position_change:.4f}"
         )
 
-        # 计算变化百分比（仅针对加仓和减仓）
+        # Calculate change percentage (only for add and reduce positions)
         if tx_event.tx_type in [TxType.ADD_POSITION, TxType.REDUCE_POSITION] and pre_amount != 0:
             change_percentage = (position_change / pre_amount) * 100
             percentage_str = f"({change_percentage:+.2f}%)"
             position_change_formatted = f"{position_change_formatted} {percentage_str}"
 
         _data = {
-            TxType.OPEN_POSITION: "开仓",
-            TxType.ADD_POSITION: "加仓",
-            TxType.REDUCE_POSITION: "减仓",
-            TxType.CLOSE_POSITION: "清仓",
+            TxType.OPEN_POSITION: "Open",
+            TxType.ADD_POSITION: "Add",
+            TxType.REDUCE_POSITION: "Reduce",
+            TxType.CLOSE_POSITION: "Close",
         }
-        # 交易类型中文映射
+        # Transaction type mapping
         tx_type_cn = _data.get(tx_event.tx_type, str(tx_event.tx_type))
 
         tx_time = datetime.fromtimestamp(tx_event.timestamp).strftime("%Y-%m-%d %H:%M:%S")
@@ -137,7 +136,7 @@ class SmartWalletSwapAlertNotify:
         )
 
     async def send_notification(self, tx_event: TxEvent, swap_message: SwapMessage) -> None:
-        """发送通知到所有配置的聊天"""
+        """Send notifications to all configured chats"""
         monitors = await self.monitor_service.get_active_by_target_wallet(str(tx_event.who))
 
         async def _f(_monitor):
@@ -162,27 +161,27 @@ class SmartWalletSwapAlertNotify:
             logger.error(f"Error sending notifications: {e}")
 
     async def _handle_event(self, tx_event: TxEvent) -> None:
-        """处理从Redis Stream接收到的事件
+        """Handle events received from Redis Stream
 
         Args:
-            fields: Redis Stream消息字段
+            fields: Redis Stream message fields
         """
         try:
-            # 格式化消息
+            # Format message
             message = await self.build_swap_message(tx_event)
-            # 发送通知
+            # Send notification
             await self.send_notification(tx_event, message)
         except Exception as e:
             logger.error(f"Error handling event: {e}, raw data: {tx_event}")
 
     async def start(self) -> None:
-        """启动通知服务"""
+        """Start notification service"""
         logger.info("Starting transaction event notification service")
-        # 使用 create_task 来启动消费者，避免阻塞
+        # Use create_task to start consumer, avoid blocking
         self._consumer_task = asyncio.create_task(self.consumer.start())
 
     def stop(self) -> None:
-        """停止通知服务"""
+        """Stop notification service"""
         if hasattr(self, "_consumer_task"):
             self._consumer_task.cancel()
 

@@ -2,9 +2,9 @@ from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message)
 from solbot_common.log import logger
-
 from tg_bot.conversations.states import StartStates
 from tg_bot.services.activation import ActivationCodeService
 
@@ -37,7 +37,7 @@ async def start_activation_code(callback: CallbackQuery, state: FSMContext):
         logger.warning("Message is not a Message object")
         return
 
-    await callback.message.edit_text(text="请发送激活码")
+    await callback.message.edit_text(text="Please send activation code")
     await state.set_state(StartStates.WAITING_FOR_ACTIVATION_CODE)
 
 
@@ -60,18 +60,18 @@ async def handle_activation_code(message: Message, state: FSMContext):
         )  # seconds
         expired_datetime = datetime.fromtimestamp(expired_timestamp).strftime("%Y-%m-%d %H:%M:%S")
         await message.answer(
-            f"✅ 激活成功！有效期至 {expired_datetime}，请点击 /start 开始使用机器人。",
+            f"✅ Activation successful! Valid until {expired_datetime}, please click /start to begin using the bot.",
         )
         await state.clear()
         logger.info(f"User {message.from_user.id} activate successfully")
     else:
         await message.answer(
-            "❌ 激活码无效或已过期，请重试或联系管理员获取新的激活码。",
+            "❌ Activation code is invalid or expired, please try again or contact admin for a new code.",
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
                     [
                         InlineKeyboardButton(
-                            text="输入激活码",
+                            text="Enter activation code",
                             callback_data="start:activation_code",
                         )
                     ]
