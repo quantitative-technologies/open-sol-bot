@@ -272,7 +272,7 @@ async def handle_set_fixed_buy_amount(message: Message, state: FSMContext):
     try:
         fixed_buy_amount = float(fixed_buy_amount)
     except ValueError:
-        msg = await message.reply("❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid buy amount, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -284,7 +284,7 @@ async def handle_set_fixed_buy_amount(message: Message, state: FSMContext):
         return
 
     if fixed_buy_amount <= 0 or fixed_buy_amount < 0.00000001:
-        msg = await message.reply("❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid buy amount, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -475,7 +475,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
     try:
         priority = float(priority)
     except ValueError:
-        msg = await message.answer("❌ Invalid priority fee, please enter again:", reply_markup=ForceReply())
+        msg = await message.answer("❌ Invalid priority fee, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -487,7 +487,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
         return
 
     if priority <= 0:
-        msg = await message.answer("❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply())
+        msg = await message.answer("❌ Invalid priority fee, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -633,7 +633,7 @@ async def handle_set_custom_slippage(message: Message, state: FSMContext):
     try:
         custom_slippage = float(custom_slippage)
     except ValueError:
-        msg = await message.reply("❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid custom slippage, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -645,7 +645,7 @@ async def handle_set_custom_slippage(message: Message, state: FSMContext):
         return
 
     if custom_slippage <= 0 or custom_slippage > 100:
-        msg = await message.reply("❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid custom slippage, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -721,10 +721,10 @@ async def submit_copytrade(callback: CallbackQuery, state: FSMContext):
 
     # Validate copytrade settings
     if copytrade_settings.target_wallet is None:
-        # 发送错误消息并在 10 秒后删除
-        error_message = await callback.message.answer("❌ 创建失败，请设置正确的跟单地址")
+        # Send error message and delete after 10 seconds
+        error_message = await callback.message.answer("❌ Creation failed, please set a valid copy trading address")
 
-        # 创建一个异步任务来删除消息
+        # Create an async task to delete message
         async def delete_message_later(message: Message, delay: int):
             await asyncio.sleep(delay)
             try:
@@ -733,19 +733,19 @@ async def submit_copytrade(callback: CallbackQuery, state: FSMContext):
                 logger.warning(f"Failed to delete message: {e}")
 
         delete_task = asyncio.create_task(delete_message_later(error_message, 10))
-        # 添加任务完成回调以处理可能的异常
+        # Add task completion callback to handle possible exceptions
         delete_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
         return
 
-    # 写入数据库
+    # Write to database
     try:
         await copy_trade_service.add(copytrade_settings)
     except Exception as e:
         logger.warning(f"Failed to add copytrade: {e}")
-        # 发送错误消息并在 10 秒后删除
-        error_message = await callback.message.answer("❌ 创建失败，请稍后重试")
+        # Send error message and delete after 10 seconds
+        error_message = await callback.message.answer("❌ Creation failed, please try again later")
 
-        # 创建一个异步任务来删除消息
+        # Create an async task to delete message
         async def delete_message_later(message: Message, delay: int):
             await asyncio.sleep(delay)
             try:
@@ -754,7 +754,7 @@ async def submit_copytrade(callback: CallbackQuery, state: FSMContext):
                 logger.warning(f"Failed to delete message: {e}")
 
         delete_task = asyncio.create_task(delete_message_later(error_message, 10))
-        # 添加任务完成回调以处理可能的异常
+        # Add task completion callback to handle possible exceptions
         delete_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
         return
 

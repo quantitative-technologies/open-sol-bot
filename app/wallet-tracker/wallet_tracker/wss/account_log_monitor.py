@@ -1,6 +1,6 @@
 """
-连接 RPC 监听账户日志
-监控聪明钱包的交易活动，并将消息推送至 Redis
+Connect to RPC to monitor account logs
+Monitor smart wallet transaction activities and push messages to Redis
 """
 
 import asyncio
@@ -14,11 +14,11 @@ from solbot_common.log import logger
 from solders.errors import SerdeJSONError  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
 from solders.rpc.config import RpcTransactionLogsFilterMentions  # type: ignore
-from solders.rpc.responses import LogsNotification, SubscriptionResult  # type: ignore
-from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
-
+from solders.rpc.responses import LogsNotification  # type: ignore
+from solders.rpc.responses import SubscriptionResult
 from wallet_tracker import benchmark
 from wallet_tracker.constants import NEW_TX_SIGNATURE_CHANNEL
+from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
 
 class AccountLogMonitor:
@@ -30,44 +30,45 @@ class AccountLogMonitor:
         redis_channel: str = NEW_TX_SIGNATURE_CHANNEL,
     ):
         """
-        初始化监控器
+        Initialize the monitor
 
         Args:
-            init_wallets: 要监控的钱包地址列表
-            rpc_endpoint: Solana RPC 端点
-            redis_channel: Redis 发布订阅频道名
+            init_wallets: List of wallet addresses to monitor
+            rpc_endpoint: Solana RPC endpoint
+            redis_channel: Redis pub/sub channel name
         """
         self.init_wallets = list(init_wallets)
         self.websocket_url = rpc_endpoint.replace("https://", "wss://")
         self.redis_channel = redis_channel
         self.redis = redis_client
         self.is_running = False
-        # FIXME: 目前采用的是钱包与钱包建立映射关系，是否可能出现多个钱包跟踪同一个目标钱包的情况。其中一个钱包取消了订阅，是否可能导致其他钱包也无法收到消息
-        self.subscription_ids = {}  # 新增：存储钱包地址和订阅ID的映射
-        self.websocket = None  # 新增：存储 websocket 连接
-        self.waitting_subscribe_response_wallet = None  # 新增：存储等待订阅响应的钱包地址
-        self.subscribed_wallets = set()  # 新增：存储已订阅的钱包地址
-        self.subscribe_lock = asyncio.Lock()  # 新增：订阅锁
+        # FIXME: Currently using wallet-to-wallet mapping, need to consider if multiple wallets track the same target wallet.
+        # If one wallet unsubscribes, could it prevent other wallets from receiving messages?
+        self.subscription_ids = {}  # Store mapping between wallet addresses and subscription IDs
+        self.websocket = None  # Store websocket connection
+        self.waitting_subscribe_response_wallet = None  # Store wallet address waiting for subscription response
+        self.subscribed_wallets = set()  # Store subscribed wallet addresses
+        self.subscribe_lock = asyncio.Lock()  # Subscription lock
         self.waitting_subscribe_wallet: asyncio.Queue[Pubkey] = (
             asyncio.Queue()
-        )  # 新增：等待订阅的钱包队列
+        )  # Queue for wallets waiting to be subscribed
         self.waitting_unsubscribe_wallet: asyncio.Queue[Pubkey] = (
             asyncio.Queue()
-        )  # 新增：等待取消订阅的钱包队列
-        self.__subscribe_task_join_handle = None  # 新增：订阅任务句柄
-        self.__unsubscribe_task_join_handle = None  # 新增：取消订阅任务句柄
+        )  # Queue for wallets waiting to be unsubscribed
+        self.__subscribe_task_join_handle = None  # Subscribe task handle
+        self.__unsubscribe_task_join_handle = None  # Unsubscribe task handle
 
     async def process_log(self, message: LogsNotification) -> None:
         """
-        处理接收到的日志数据
+        Process received log data
 
         Args:
-            message: WebSocket 返回的日志数据
+            message: Log data returned from WebSocket
         """
         try:
             signature = str(message.result.value.signature)
             assert self.redis is not None, "Redis is not connected"
-            # 发送到 Redis
+            # Send to Redis
             await self.redis.lpush(self.redis_channel, signature)
             await benchmark.init(str(signature))
             logger.info(f"New tx signature: {signature}")
@@ -89,7 +90,7 @@ class AccountLogMonitor:
             self.subscribed_wallets.add(old_wallet)
 
     async def subscribe_wallet(self, wallet: Pubkey) -> None:
-        """订阅单个钱包"""
+        """Subscribe to a single wallet"""
         if not self.websocket:
             logger.warning(
                 f"WebSocket connection is not established. Cannot subscribe to wallet: {wallet}"
@@ -105,7 +106,7 @@ class AccountLogMonitor:
             )
 
     async def unsubscribe_wallet(self, wallet: Pubkey) -> None:
-        """取消订阅单个钱包"""
+        """Unsubscribe from a single wallet"""
         if not self.websocket:
             logger.warning(
                 f"WebSocket connection is not established. Cannot subscribe to wallet: {wallet}"
@@ -122,7 +123,7 @@ class AccountLogMonitor:
             logger.info(f"Unsubscribed from wallet: {wallet}")
 
     async def __subscribe_task(self) -> None:
-        """订阅所有钱包"""
+        """Subscribe to all wallets"""
         while self.is_running:
             try:
                 wallet = await self.waitting_subscribe_wallet.get()
@@ -135,7 +136,7 @@ class AccountLogMonitor:
         return
 
     async def __unsubscribe_task(self) -> None:
-        """取消订阅所有钱包"""
+        """Unsubscribe from all wallets"""
         while self.is_running:
             try:
                 wallet = await self.waitting_unsubscribe_wallet.get()
@@ -148,14 +149,14 @@ class AccountLogMonitor:
         return
 
     async def start(self) -> None:
-        """启动监控服务"""
+        """Start monitoring service"""
         self.is_running = True
         retry_count = 0
         max_retries = 5
         base_delay = 5
 
         while self.is_running:
-            # 如果断开了，重新连接时，需要将已订阅的钱包重新进行订阅
+            # When disconnected, need to resubscribe all previously subscribed wallets upon reconnection
             for wallet in self.subscribed_wallets:
                 self.waitting_subscribe_wallet.put_nowait(Pubkey.from_string(wallet))
 
@@ -197,7 +198,7 @@ class AccountLogMonitor:
                             logger.warning(f"WebSocket connection closed: {ws_error}")
                             break
                         except (SerdeJSONError, PicklingError) as e:
-                            # FIXME: 取消订阅后，接收到的消息反序列化失败
+                            # FIXME: Deserialization fails for messages received after unsubscribe
                             logger.warning(f"Skipping invalid message: {e}")
                         except Exception as e:
                             logger.error(f"Error processing message: {e}")
@@ -225,7 +226,7 @@ class AccountLogMonitor:
             await asyncio.sleep(delay)
 
     async def cleanup(self) -> None:
-        """清理连接"""
+        """Clean up connections"""
         try:
             if self.websocket:
                 await self.websocket.close()
@@ -246,7 +247,7 @@ class AccountLogMonitor:
             self.__unsubscribe_task_join_handle = None
 
     async def stop(self) -> None:
-        """停止监控服务"""
+        """Stop monitoring service"""
         self.is_running = False
         await self.cleanup()
         logger.info("Monitor stopped")

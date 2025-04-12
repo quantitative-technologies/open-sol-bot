@@ -2,7 +2,8 @@ from typing import TypedDict
 
 from solbot_common.utils import get_associated_token_address, get_async_client
 from solders.pubkey import Pubkey  # type: ignore
-from spl.token.constants import TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID  # type: ignore
+from spl.token.constants import TOKEN_2022_PROGRAM_ID  # type: ignore
+from spl.token.constants import TOKEN_PROGRAM_ID
 
 
 class TokenAccountBalance(TypedDict):
@@ -11,15 +12,14 @@ class TokenAccountBalance(TypedDict):
 
 
 async def get_token_account_balance(token_mint: str, owner: str) -> TokenAccountBalance | None:
-    """获取 token 余额
+    """Get token balance
 
     Args:
-        rpc_client (AsyncClient): RPC 客户端
-        token_mint (str): token 地址
-        owner (str): 拥有者地址
+        token_mint (str): Token address
+        owner (str): Owner address
 
     Returns:
-        int: 余额，单位 lamports
+        TokenAccountBalance | None: Balance in lamports, or None if not found
     """
     rpc_client = get_async_client()
     account = get_associated_token_address(

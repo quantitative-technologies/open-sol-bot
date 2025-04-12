@@ -1,5 +1,4 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
 from tg_bot.models.monitor import Monitor
 
 
@@ -9,11 +8,11 @@ def monitor_keyboard_menu(
     if monitor_items is None:
         monitor_items = []
 
-    # 构建监听项目的按钮矩阵
+    # Build monitor item button matrix
     items = []
     current_row = []
 
-    for idx, item in enumerate(monitor_items[:10], 1):  # 限制最多显示10个
+    for idx, item in enumerate(monitor_items[:10], 1):  # Limit to max 10 items
         if item.wallet_alias is None:
             assert item.target_wallet is not None
             wallet_name = item.target_wallet[:5] + "..."
@@ -26,29 +25,29 @@ def monitor_keyboard_menu(
             )
         )
 
-        # 每5个按钮换一行，或者是最后一个按钮
+        # New row after every 5 buttons or if it's the last item
         if len(current_row) == 5 or idx == len(monitor_items):
             items.append(current_row)
             current_row = []
 
-    # 如果最后一行不满5个，也要添加进去
+    # Add the last row even if not full
     if current_row:
         items.append(current_row)
 
-    # 停止所有监听
+    # Stop all monitoring
     items.append(
         [
             InlineKeyboardButton(
-                text="停止所有监听",
+                text="Stop All Monitoring",
                 callback_data="stop_all_monitor",
             )
         ]
     )
 
-    # 底部按钮
+    # Bottom buttons
     bottom_buttons = [
-        InlineKeyboardButton(text="➕ 新增", callback_data="create_new_monitor"),
-        InlineKeyboardButton(text="⬅️ 返回", callback_data="back_to_home"),
+        InlineKeyboardButton(text="➕ Add New", callback_data="create_new_monitor"),
+        InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_home"),
     ]
 
     return InlineKeyboardMarkup(
@@ -65,7 +64,7 @@ def create_monitor_keyboard(monitor: Monitor) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "请输入钱包地址"
+                        "Please enter wallet address"
                         if monitor.target_wallet is None
                         else str(monitor.target_wallet)
                     ),
@@ -75,20 +74,20 @@ def create_monitor_keyboard(monitor: Monitor) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "钱包别名(可选)"
+                        "Wallet alias (optional)"
                         if monitor.wallet_alias is None
-                        else f"钱包别名：{monitor.wallet_alias}"
+                        else f"Wallet alias: {monitor.wallet_alias}"
                     ),
                     callback_data="set_wallet_alias",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="⬅️ 返回",
+                    text="⬅️ Back",
                     callback_data="back_to_monitor",
                 ),
                 InlineKeyboardButton(
-                    text="✅ 确认",
+                    text="✅ Confirm",
                     callback_data="submit_monitor",
                 ),
             ],
@@ -102,7 +101,7 @@ def edit_monitor_keyboard(monitor: Monitor) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "请输入钱包地址"
+                        "Please enter wallet address"
                         if monitor.target_wallet is None
                         else str(monitor.target_wallet)
                     ),
@@ -112,26 +111,26 @@ def edit_monitor_keyboard(monitor: Monitor) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "钱包别名(可选)"
+                        "Wallet alias (optional)"
                         if monitor.wallet_alias is None
-                        else f"钱包别名：{monitor.wallet_alias}"
+                        else f"Wallet alias: {monitor.wallet_alias}"
                     ),
                     callback_data="set_wallet_alias",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="删除监听",
+                    text="Delete Monitor",
                     callback_data="delete_monitor",
                 ),
                 InlineKeyboardButton(
-                    text="停止监听" if monitor.active else "开启监听",
+                    text="Stop Monitor" if monitor.active else "Start Monitor",
                     callback_data="toggle_monitor",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="⬅️ 返回",
+                    text="⬅️ Back",
                     callback_data="back_to_monitor",
                 ),
             ],

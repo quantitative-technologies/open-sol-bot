@@ -81,7 +81,7 @@ async def start_bot():
     logger.info("Starting bot...")
     await dp.start_polling(bot)
 
-    # 清理数据库连接
+    # Clean up database connections
     # await cleanup_session_factory()
     # 关闭 bot
     await bot.session.close()

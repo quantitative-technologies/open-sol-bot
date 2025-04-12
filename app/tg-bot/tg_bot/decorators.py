@@ -11,11 +11,11 @@ T = TypeVar("T", bound=Callable[..., Awaitable[Any]])
 
 def clear_state(func: T) -> T:
     """
-    装饰器：在函数执行完成后清空 state。
+    Decorators：Clear after function execution is completed state。
 
-    注意：被装饰的函数必须有 state: FSMContext 参数。
+    Note: The decorated function must have state: FSMContext parameter.
 
-    用法：
+    usage:
     @clear_state
     async def handler(message: Message, state: FSMContext):
         ...
@@ -23,7 +23,7 @@ def clear_state(func: T) -> T:
 
     @functools.wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
-        # 从参数中找到 FSMContext 实例
+        # Find it from the parameters FSMContext Example
         state = None
         for arg in args:
             if isinstance(arg, FSMContext):
@@ -38,13 +38,13 @@ def clear_state(func: T) -> T:
             )
 
         try:
-            # 执行原函数
+            # Execute the original function
             result = await func(*args, **kwargs)
-            # 清空 state
+            # Clear state
             await state.clear()
             return result
         except Exception as e:
-            # 发生异常时也要清空 state
+            # Clear the exception when it occurs state
             await state.clear()
             raise e
 

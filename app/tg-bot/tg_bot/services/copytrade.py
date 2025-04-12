@@ -66,7 +66,7 @@ class CopyTradeService:
         await session.flush()
 
         assert model.id is not None, "model.id is None"
-        # 写入 redis
+        # Write to Redis
         await self.monitor_event_producer.resume_monitor(
             monitor_id=model.id,
             target_wallet=model.target_wallet,

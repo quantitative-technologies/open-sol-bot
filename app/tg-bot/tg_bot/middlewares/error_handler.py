@@ -21,7 +21,7 @@ class ErrorHandlerMiddleware(BaseMiddleware):
             if (isinstance(event, Message) and event.text is not None) or (
                 isinstance(event, CallbackQuery) and event.data is not None
             ):
-                await event.answer("❌ 未知错误，请重试！如果问题持续，请联系开发者")
+                await event.answer("❌ Unknown error, please try again!If the problem persists, please contact the developer")
             else:
                 logger.warning("Unknown event type")
                 return

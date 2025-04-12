@@ -86,7 +86,7 @@
 #             10 ** token_amount_change["decimals"]
 #         )
 #         if change_ui_amount > 0:
-#             # 加仓或开仓
+#             # Add to position or open position
 #             if pre_balance == 0 and post_balance > 0:
 #                 return TxType.OPEN_POSITION
 #             elif post_balance > pre_balance:

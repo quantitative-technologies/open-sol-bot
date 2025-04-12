@@ -31,7 +31,7 @@ async def _start(message: types.Message):
         data = await render(message)
         await message.answer(**data)
     else:
-        # 生成钱包
+        # Generate wallet
         keypair = generate_keypair()
         pubkey = keypair.pubkey()
         wallet_address = pubkey.__str__()
@@ -41,7 +41,7 @@ async def _start(message: types.Message):
             keypair,
         )
 
-        # 生成默认配置
+        # Generate default configuration
         await setting_service.create_default(
             chat_id=message.from_user.id,
             wallet_address=wallet_address,
@@ -52,7 +52,7 @@ async def _start(message: types.Message):
             remaining_time = await activation_code_service.get_user_expired_timestamp(
                 message.from_user.id
             )
-            # -> 年-月-日 时:分:秒
+            # -> Year-month-day Hour: minute: seconds
             expiration_datetime = datetime.fromtimestamp(remaining_time).strftime(
                 "%Y-%m-%d %H:%M:%S"
             )

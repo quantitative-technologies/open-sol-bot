@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from solbot_common.types.copytrade import CopyTrade, CopyTradeSummary
-
 from tg_bot.utils import short_text
 
 
@@ -21,7 +20,7 @@ def copytrade_keyboard_menu(
         items.append(
             [
                 InlineKeyboardButton(
-                    text="{} 跟单地址：{}".format("🟢" if item.active else "🔴", show_name),
+                    text="{} Copy Address: {}".format("🟢" if item.active else "🔴", show_name),
                     callback_data=f"copytrade_{item.pk}",
                 )
             ]
@@ -30,14 +29,14 @@ def copytrade_keyboard_menu(
     if len(items) != 0:
         items.append(
             [
-                InlineKeyboardButton(text="停止全部跟单", callback_data="stop_all_copytrade"),
+                InlineKeyboardButton(text="Stop All Copy Trading", callback_data="stop_all_copytrade"),
             ]
         )
 
     buttoms = [
-        InlineKeyboardButton(text="➕ 创建跟单", callback_data="create_copytrade"),
-        InlineKeyboardButton(text="🔄 刷新", callback_data="refresh_copytrade"),
-        InlineKeyboardButton(text="⬅️ 返回", callback_data="back_to_home"),
+        InlineKeyboardButton(text="➕ Create Copy Trade", callback_data="create_copytrade"),
+        InlineKeyboardButton(text="🔄 Refresh", callback_data="refresh_copytrade"),
+        InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_home"),
     ]
 
     return InlineKeyboardMarkup(
@@ -55,7 +54,7 @@ def create_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "请输入跟单地址"
+                        "Please enter copy trading address"
                         if udata.target_wallet is None
                         else str(udata.target_wallet)
                     ),
@@ -65,16 +64,16 @@ def create_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "请输入钱包别名（选填）"
+                        "Please enter wallet alias (optional)"
                         if udata.wallet_alias is None
-                        else f"钱包别名：{udata.wallet_alias}"
+                        else f"Wallet alias: {udata.wallet_alias}"
                     ),
                     callback_data="set_wallet_alias",
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="{} 固定买入: {} SOL".format(
+                    text="{} Fixed Buy: {} SOL".format(
                         "✅" if udata.is_fixed_buy else "",
                         udata.fixed_buy_amount,
                     ),
@@ -83,19 +82,19 @@ def create_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="{} 自动跟买/卖".format(
+                    text="{} Auto Buy/Sell".format(
                         "✅" if udata.auto_follow else "",
                     ),
                     callback_data="toggle_auto_follow",
                 ),
                 InlineKeyboardButton(
-                    text="{} 止盈止损".format(
+                    text="{} Take Profit/Stop Loss".format(
                         "✅" if udata.stop_loss else "",
                     ),
                     callback_data="toggle_take_profile_and_stop_loss",
                 ),
                 InlineKeyboardButton(
-                    text="{} 只跟买入".format(
+                    text="{} Buy Only".format(
                         "✅" if udata.no_sell else "",
                     ),
                     callback_data="toggle_no_sell",
@@ -103,26 +102,26 @@ def create_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text=f"优先费: {udata.priority} SOL",
+                    text=f"Priority Fee: {udata.priority} SOL",
                     callback_data="set_priority",
                 ),
                 InlineKeyboardButton(
-                    text="{} 防夹: {}".format(
+                    text="{} Anti-Sandwich: {}".format(
                         "✅" if udata.anti_sandwich else "❌",
-                        "开" if udata.anti_sandwich else "关",
+                        "On" if udata.anti_sandwich else "Off",
                     ),
                     callback_data="toggle_anti_sandwich",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="{} 自动滑点".format(
+                    text="{} Auto Slippage".format(
                         "✅" if udata.auto_slippage else "",
                     ),
                     callback_data="toggle_auto_slippage",
                 ),
                 InlineKeyboardButton(
-                    text="{} 自定义滑点: {}%".format(
+                    text="{} Custom Slippage: {}%".format(
                         "✅" if udata.auto_slippage is False else "",
                         udata.custom_slippage,
                     ),
@@ -130,8 +129,8 @@ def create_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
                 ),
             ],
             [
-                InlineKeyboardButton(text="⬅️ 取消", callback_data="back_to_copytrade"),
-                InlineKeyboardButton(text="✅ 确认创建", callback_data="submit_copytrade"),
+                InlineKeyboardButton(text="⬅️ Cancel", callback_data="back_to_copytrade"),
+                InlineKeyboardButton(text="✅ Confirm Create", callback_data="submit_copytrade"),
             ],
         ],
     )
@@ -143,7 +142,7 @@ def edit_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "请输入跟单地址"
+                        "Please enter copy trading address"
                         if udata.target_wallet is None
                         else str(udata.target_wallet)
                     ),
@@ -153,16 +152,16 @@ def edit_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        "请输入钱包别名（选填）"
+                        "Please enter wallet alias (optional)"
                         if udata.wallet_alias is None
-                        else f"钱包别名：{udata.wallet_alias}"
+                        else f"Wallet alias: {udata.wallet_alias}"
                     ),
                     callback_data="set_wallet_alias",
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="{} 固定买入: {} SOL".format(
+                    text="{} Fixed Buy: {} SOL".format(
                         "✅" if udata.is_fixed_buy else "",
                         udata.fixed_buy_amount,
                     ),
@@ -171,19 +170,19 @@ def edit_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="{} 自动跟卖".format(
+                    text="{} Auto Sell".format(
                         "✅" if udata.auto_follow else "",
                     ),
                     callback_data="toggle_auto_follow",
                 ),
                 InlineKeyboardButton(
-                    text="{} 止盈止损".format(
+                    text="{} Take Profit/Stop Loss".format(
                         "✅" if udata.stop_loss else "",
                     ),
                     callback_data="toggle_take_profile_and_stop_loss",
                 ),
                 InlineKeyboardButton(
-                    text="{} 只跟买入".format(
+                    text="{} Buy Only".format(
                         "✅" if udata.no_sell else "",
                     ),
                     callback_data="toggle_no_sell",
@@ -191,26 +190,26 @@ def edit_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text=f"优先费: {udata.priority} SOL",
+                    text=f"Priority Fee: {udata.priority} SOL",
                     callback_data="set_priority",
                 ),
                 InlineKeyboardButton(
-                    text="{} 防夹: {}".format(
+                    text="{} Anti-Sandwich: {}".format(
                         "✅" if udata.anti_sandwich else "❌",
-                        "开" if udata.anti_sandwich else "关",
+                        "On" if udata.anti_sandwich else "Off",
                     ),
                     callback_data="toggle_anti_sandwich",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="{} 自动滑点".format(
+                    text="{} Auto Slippage".format(
                         "✅" if udata.auto_slippage else "",
                     ),
                     callback_data="toggle_auto_slippage",
                 ),
                 InlineKeyboardButton(
-                    text="{} 自定义滑点: {}%".format(
+                    text="{} Custom Slippage: {}%".format(
                         "✅" if udata.auto_slippage is False else "",
                         udata.custom_slippage,
                     ),
@@ -218,14 +217,14 @@ def edit_copytrade_keyboard(udata: CopyTrade) -> InlineKeyboardMarkup:
                 ),
             ],
             [
-                InlineKeyboardButton(text="删除跟单", callback_data="delete_copytrade"),
+                InlineKeyboardButton(text="Delete Copy Trade", callback_data="delete_copytrade"),
                 InlineKeyboardButton(
-                    text="停止跟单" if udata.active is True else "启动跟单",
+                    text="Stop Copy Trade" if udata.active is True else "Start Copy Trade",
                     callback_data="toggle_copytrade",
                 ),
             ],
             [
-                InlineKeyboardButton(text="⬅️ 返回", callback_data="back_to_copytrade"),
+                InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_copytrade"),
             ],
         ],
     )
@@ -235,14 +234,14 @@ def take_profile_and_stop_loss_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="设置止盈止损", callback_data="set_tp_sl"),
+                InlineKeyboardButton(text="Set Take Profit/Stop Loss", callback_data="set_tp_sl"),
             ],
             [
-                InlineKeyboardButton(text="移动止盈止损", callback_data="move_tp_sl"),
+                InlineKeyboardButton(text="Move Take Profit/Stop Loss", callback_data="move_tp_sl"),
             ],
             [
-                InlineKeyboardButton(text="⬅️ 返回", callback_data="back_to_copytrade"),
-                InlineKeyboardButton(text="✅ 确认", callback_data="submit_copytrade"),
+                InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_copytrade"),
+                InlineKeyboardButton(text="✅ Confirm", callback_data="submit_copytrade"),
             ],
         ],
     )

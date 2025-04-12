@@ -1,10 +1,10 @@
-"""钱包监听模块
+"""Wallet listening module
 
-该钱包监听模块主要用于监听自己的钱包变动，包括：
-- sol 余额变动
-- token 余额变动
-- 建仓（即新建 ata)
-- 清仓（即删除 ata)
-- 加仓（在 ata 存在的情况下，增加了 token)
-- 减仓（在 ata 存在的情况下，减少了 token)
+This wallet listening module is mainly used to monitor its own wallet changes, including:
+- sol balance change
+- token balance changes
+- Build a position (i.e., create a new ata)
+- Clearance (i.e. delete ata)
+- Increase position (in the presence of ata, add token)
+- Reduce positions (in the presence of ata, reduce tokens)
 """

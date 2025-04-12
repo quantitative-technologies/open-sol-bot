@@ -6,25 +6,20 @@ from collections.abc import AsyncGenerator, Sequence
 import aioredis
 import base58
 import orjson as json
-from google.protobuf.json_format import (
-    Parse,
-    _Printer,  # type: ignore
-)
+from google.protobuf.json_format import _Printer  # type: ignore
+from google.protobuf.json_format import Parse
 from google.protobuf.message import Message
 from grpc.aio import AioRpcError
 from solbot_common.config import settings
 from solbot_common.log import logger
 from solbot_db.redis import RedisClient
 from solders.pubkey import Pubkey  # type: ignore
+from wallet_tracker.constants import NEW_TX_DETAIL_CHANNEL
 from yellowstone_grpc.client import GeyserClient
 from yellowstone_grpc.grpc import geyser_pb2
-from yellowstone_grpc.types import (
-    SubscribeRequest,
-    SubscribeRequestFilterTransactions,
-    SubscribeRequestPing,
-)
-
-from wallet_tracker.constants import NEW_TX_DETAIL_CHANNEL
+from yellowstone_grpc.types import (SubscribeRequest,
+                                    SubscribeRequestFilterTransactions,
+                                    SubscribeRequestPing)
 
 
 def should_convert_to_base58(value) -> bool:
@@ -32,12 +27,12 @@ def should_convert_to_base58(value) -> bool:
     if not isinstance(value, bytes):
         return False
     try:
-        # 尝试解码为字符串，如果成功且没有特殊字符，就用字符串
+        # Try decoding into a string, if successful and no special characters are used
         decoded = value.decode("utf-8")
-        # 检查是否包含转义字符或不可打印字符
+        # Check whether there are escaped characters or non-printable characters
         return "\\" in decoded or any(ord(c) < 32 or ord(c) > 126 for c in decoded)
     except UnicodeDecodeError:
-        # 如果无法解码为字符串，就用 base58
+        # If it cannot be decoded into a string, use base58
         return True
 
 
@@ -88,7 +83,7 @@ class TransactionDetailSubscriber:
 
         self.request_queue: asyncio.Queue[geyser_pb2.SubscribeRequest] | None = None
         self.responses: AsyncGenerator[geyser_pb2.SubscribeUpdate, None] | None = None
-        # 响应处理相关
+        # Response processing related
         self.response_queue = asyncio.Queue(maxsize=1000)
         self.worker_nums = 2
         self.workers: list[asyncio.Task] = []
@@ -158,20 +153,20 @@ class TransactionDetailSubscriber:
 
         try:
             signature = transaction["transaction"]["signature"]
-            # 构建成 rpc 返回的结构，方便统一解析交易数据
+            # Build RPC response structure for unified transaction parsing
             data = {
                 **transaction["transaction"],
             }
             data["slot"] = int(transaction["slot"])
             data["version"] = 0
-            # 只有被确认之后才会有 blockTime, 所以这里设置为当前时间
+            # blockTime is only available after confirmation, so set it to current time
             data["blockTime"] = int(time.time())
 
             tx_info_json = json.dumps(data)
             # Store in Redis using LIST structure
-            # 将交易信息添加到列表左端（最新的交易在最前面）
+            # Add transaction info to the left end of the list (newest transactions first)
             await self.redis.lpush(NEW_TX_DETAIL_CHANNEL, tx_info_json)
-            # 保持列表长度在合理范围内（比如最多保留1000条交易记录）
+            # Keep list length within reasonable limits (e.g. max 1000 transaction records)
             # await self.redis.ltrim(NEW_TX_DETAIL_CHANNEL, 0, 999)
             logger.info(f"Added transaction '{signature}' to queue")
         except Exception as e:
@@ -211,11 +206,11 @@ class TransactionDetailSubscriber:
     async def _stop_workers(self):
         """Stop response processing workers."""
         logger.info("Stopping response workers")
-        # 等待队列处理完成
+        # Wait for queue processing to complete
         if not self.response_queue.empty():
             await self.response_queue.join()
 
-        # 取消所有工作协程
+        # Cancel all worker coroutines
         for worker in self.workers:
             worker.cancel()
         if self.workers:
@@ -229,10 +224,10 @@ class TransactionDetailSubscriber:
         self.is_running = True
 
         try:
-            # 启动工作协程
+            # Start worker coroutines
             await self._start_workers()
 
-            # 初始化连接
+            # Initialize connection
             await self._connect()
 
             if self.geyser_client is None:
@@ -267,7 +262,7 @@ class TransactionDetailSubscriber:
                         await self._reconnect_and_subscribe()
 
             monitor_task = asyncio.create_task(_f())
-            # 添加任务完成回调以处理可能的异常
+            # Add task completion callback to handle potential exceptions
             monitor_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
         except asyncio.CancelledError:
             logger.info("Monitor cancelled, shutting down...")
@@ -283,10 +278,10 @@ class TransactionDetailSubscriber:
         logger.info("Stopping wallet monitor...")
         self.is_running = False
 
-        # 等待所有工作协程完成
+        # Wait for all worker coroutines to complete
         await self._stop_workers()
 
-        # 关闭 geyser client
+        # Close geyser client
         if self.geyser_client:
             try:
                 await self.geyser_client.close()
@@ -294,7 +289,7 @@ class TransactionDetailSubscriber:
             except Exception as e:
                 logger.error(f"Error closing geyser client: {e}")
 
-        # 关闭 Redis 连接
+        # Close Redis connection
         if self.redis:
             try:
                 await RedisClient.close()
@@ -305,13 +300,13 @@ class TransactionDetailSubscriber:
         logger.info("Wallet monitor stopped")
 
     async def subscribe_wallet_transactions(self, wallet: Pubkey) -> None:
-        """订阅钱包的交易信息。
+        """Subscribe to wallet transactions.
 
-        每次发送新的订阅请求都会完全替换之前的订阅状态。
-        这是 Geyser API 的设计：它使用 gRPC 的双向流，每个新请求都会更新整个订阅列表。
+        Each new subscription request completely replaces the previous subscription state.
+        This is by design of the Geyser API: it uses gRPC bidirectional streaming where each new request updates the entire subscription list.
 
         Args:
-            wallet (Pubkey): 要订阅的钱包地址
+            wallet (Pubkey): The wallet address to subscribe to
         """
         if self.request_queue is None:
             raise Exception("Request queue is not initialized")
@@ -320,24 +315,24 @@ class TransactionDetailSubscriber:
             logger.warning(f"Wallet {wallet} already subscribed")
             return
 
-        # 添加到订阅集合
+        # Add to subscription set
         self.subscribed_wallets.add(str(wallet))
 
-        # 发送订阅请求，包含所有已订阅的钱包
-        # 这个请求会完全替换服务器端之前的订阅状态
+        # Send subscription request including all subscribed wallets
+        # This request will completely replace the server's previous subscription state
         subscribe_request = self.__build_subscribe_request()
         json_str = subscribe_request.model_dump_json()
         pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())
         await self.request_queue.put(pb_request)
 
     async def unsubscribe_wallet_transactions(self, wallet: Pubkey) -> None:
-        """取消订阅钱包的交易信息。
+        """Unsubscribe from wallet transactions.
 
-        每次发送新的订阅请求都会完全替换之前的订阅状态。
-        这是 Geyser API 的设计：它使用 gRPC 的双向流，每个新请求都会更新整个订阅列表。
+        Each new subscription request completely replaces the previous subscription state.
+        This is by design of the Geyser API: it uses gRPC bidirectional streaming where each new request updates the entire subscription list.
 
         Args:
-            wallet (Pubkey): 要取消订阅的钱包地址
+            wallet (Pubkey): The wallet address to unsubscribe from
         """
         if self.request_queue is None:
             raise Exception("Request queue is not initialized")
@@ -346,11 +341,11 @@ class TransactionDetailSubscriber:
             logger.warning(f"Wallet {wallet} not subscribed")
             return
 
-        # 从订阅集合中移除钱包
+        # Remove wallet from subscription set
         self.subscribed_wallets.remove(str(wallet))
 
-        # 发送新的订阅请求，只包含剩余的钱包
-        # 这个请求会完全替换服务器端之前的订阅状态
+        # Send new subscription request with only remaining wallets
+        # This request will completely replace the server's previous subscription state
         subscribe_request = self.__build_subscribe_request()
         json_str = subscribe_request.model_dump_json()
         pb_request = Parse(json_str, geyser_pb2.SubscribeRequest())

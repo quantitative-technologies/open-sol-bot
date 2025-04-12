@@ -252,12 +252,12 @@ async def submit_monitor(callback: CallbackQuery, state: FSMContext):
         return
 
     if monitor_settings.target_wallet is None:
-        # 发送错误消息并在 10 秒后删除
+        # Send an error message and 10 Delete in seconds
         error_message = await callback.message.answer("❌ Creation failed, please set the correct order address")
         await delete_later(error_message)
         return
 
-    # 写入数据库
+    # Write to the database
     try:
         await monitor_service.add(monitor_settings)
     except Exception as e:

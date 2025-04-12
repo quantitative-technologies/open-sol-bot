@@ -3,8 +3,8 @@ from solbot_common.types.bot_setting import BotSetting as Setting
 
 
 def settings_keyboard(setting: Setting) -> InlineKeyboardMarkup:
-    # 自动滑点按钮文本
-    auto_slippage_text = "✅ 自动滑点开启" if setting.auto_slippage else "❌ 自动滑点关闭"
+    # Auto slippage button text
+    auto_slippage_text = "✅ Auto Slippage On" if setting.auto_slippage else "❌ Auto Slippage Off"
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -17,40 +17,40 @@ def settings_keyboard(setting: Setting) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=(
-                        f"快速滑点 {setting.get_quick_slippage_pct()}% ✏️"
+                        f"Quick Slippage {setting.get_quick_slippage_pct()}% ✏️"
                         if setting.auto_slippage
-                        else f"✅ 快速滑点 {setting.get_quick_slippage_pct()}% ✏️"
+                        else f"✅ Quick Slippage {setting.get_quick_slippage_pct()}% ✏️"
                     ),
                     callback_data="setting:edit_quick_slippage",
                 ),
                 InlineKeyboardButton(
-                    text=f"防夹滑点 {setting.get_sandwich_slippage_pct()}% ✏️",
+                    text=f"Anti-Sandwich Slippage {setting.get_sandwich_slippage_pct()}% ✏️",
                     callback_data="setting:edit_sandwich_slippage",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="修改买入优先费",
+                    text="Edit Buy Priority Fee",
                     callback_data="setting:edit_buy_priority_fee",
                 ),
                 InlineKeyboardButton(
-                    text="修改卖出优先费",
+                    text="Edit Sell Priority Fee",
                     callback_data="setting:edit_sell_priority_fee",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="✅ 自动买开启" if setting.auto_buy else "❌ 自动买关闭",
+                    text="✅ Auto Buy On" if setting.auto_buy else "❌ Auto Buy Off",
                     callback_data="setting:toggle_auto_buy",
                 ),
                 InlineKeyboardButton(
-                    text="✅ 自动卖开启" if setting.auto_sell else "❌ 自动卖关闭",
+                    text="✅ Auto Sell On" if setting.auto_sell else "❌ Auto Sell Off",
                     callback_data="setting:toggle_auto_sell",
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="----- 自定义买 -----",
+                    text="----- Custom Buy -----",
                     callback_data="setting:custom_buy_divider",
                 ),
             ],
@@ -80,7 +80,7 @@ def settings_keyboard(setting: Setting) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="----- 自定义卖 -----",
+                    text="----- Custom Sell -----",
                     callback_data="setting:custom_sell_divider",
                 ),
             ],
@@ -96,7 +96,7 @@ def settings_keyboard(setting: Setting) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text="⬅️ 返回",
+                    text="⬅️ Back",
                     callback_data="back_to_home",
                 )
             ],
