@@ -146,7 +146,7 @@ class RawTXParser(TransactionParserInterface):
         #         raise TransactionError(str(self.tx_detail["meta"]["status"]["Err"]))
 
         try:
-            # 不是 swap 交易
+            # no swap trade
             pre_token_balances = self.tx_detail["meta"]["preTokenBalances"]
             post_token_balances = self.tx_detail["meta"]["postTokenBalances"]
         except KeyError:
