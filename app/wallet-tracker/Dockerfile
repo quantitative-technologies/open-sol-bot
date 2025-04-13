@@ -5,7 +5,8 @@ FROM python:3.10-slim as builder
 ENV PYTHONUNBUFFERED=1 \
     PDM_USE_VENV=false \
     PDM_INSTALL_PATH=/app \
-    PROJECT_ROOT=/app
+    PROJECT_ROOT=/app \
+    DEBUG_PYDEVD_PATHS_TRANSLATION=True
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \

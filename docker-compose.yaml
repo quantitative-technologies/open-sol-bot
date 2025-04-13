@@ -26,15 +26,18 @@ services:
       context: .
       dockerfile: app/wallet-tracker/Dockerfile
     restart: unless-stopped
+    ports:
+      - "5678:5678"  # Debug port
     volumes:
       - ./config.toml:/app/config.toml:ro
       - ./app/wallet-tracker/wallet_tracker:/app/wallet_tracker:ro
       - ./logs/wallet-tracker:/app/logs
+      - .:/app/workspace  # Mount the whole workspace for better debugging
     environment:
       - PYTHONPATH=/app/libs:/app
       - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
       - DB__REDIS_URL=redis://redis:6379/0
-    command: ["wallet_tracker.main"]
+    command: ["debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "--log-to", "/app/logs", "-m", "wallet_tracker.main"]
     depends_on:
       mysql:
         condition: service_healthy
