@@ -37,7 +37,7 @@ services:
       - PYTHONPATH=/app/libs:/app
       - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
       - DB__REDIS_URL=redis://redis:6379/0
-    command: ["debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "--log-to", "/app/logs", "-m", "wallet_tracker.main"]
+    command: ["debugpy", "--listen", "0.0.0.0:5678", "--log-to", "/app/logs", "-m", "wallet_tracker.main"]
     depends_on:
       mysql:
         condition: service_healthy
@@ -81,7 +81,7 @@ services:
       - PYTHONPATH=/app/libs:/app
       - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
       - DB__REDIS_URL=redis://redis:6379/0
-    command: ["tg_bot.main"]
+    command: ["debugpy", "--listen", "0.0.0.0:5678", "--log-to", "/app/logs", "-m", "tg_bot.main"]
     depends_on:
       mysql:
         condition: service_healthy

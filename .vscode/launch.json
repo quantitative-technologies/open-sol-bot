@@ -18,12 +18,22 @@
                     "remoteRoot": "/app/wallet_tracker"
                 }
             ],
-            // "pathMappings": [
-            //     {
-            //         "localRoot": "${fileDirname}",
-            //         "remoteRoot": "."
-            //     }
-            // ],
+            "justMyCode": false
+        },
+        {
+            "name": "TG Bot: Remote Attach",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5679
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/app/tg-bot/tg_bot",
+                    "remoteRoot": "/app/tg_bot"
+                }
+            ],
             "justMyCode": false
         }
     ]
