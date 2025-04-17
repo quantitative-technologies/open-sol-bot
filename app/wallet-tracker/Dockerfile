@@ -33,6 +33,6 @@ FROM builder as final
 COPY ./libs /app/libs
 COPY ./app/wallet-tracker/pyproject.toml /app/
 RUN pdm config && \
-    pdm install -G local
+    pdm install --no-self --no-editable -G :all
 
 ENTRYPOINT [ "pdm", "run", "python", "-m" ]

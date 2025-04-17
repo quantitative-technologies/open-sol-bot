@@ -54,6 +54,9 @@ local = [
     "solbot-common @ file:///${PROJECT_ROOT}/libs/common",
     "solbot-yellowstone-grpc @ file:///${PROJECT_ROOT}/libs/yellowstone_grpc",
 ]
+dev = [
+    "debugpy>=1.8.0",
+]
 
 [tool.pytest.ini_options]
 log_cli = true

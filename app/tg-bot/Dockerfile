@@ -3,9 +3,10 @@ FROM python:3.10-slim as builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
-    PDM_USE_VENV=false \
+    PDM_USE_VENV=true \
     PDM_INSTALL_PATH=/app \
-    PROJECT_ROOT=/app
+    PROJECT_ROOT=/app \
+    DEBUG_PYDEVD_PATHS_TRANSLATION=True
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -31,7 +32,7 @@ FROM builder as final
 # Install dependencies
 COPY ./libs /app/libs
 COPY ./app/tg-bot/pyproject.toml /app/
-RUN pdm config python.use_venv false && \
-    pdm install -G local
+#RUN pdm config python.use_venv false && \
+RUN pdm install --no-self --no-editable -G local -G dev
 
 ENTRYPOINT [ "pdm", "run", "python", "-m" ]
