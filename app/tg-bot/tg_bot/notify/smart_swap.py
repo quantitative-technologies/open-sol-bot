@@ -85,8 +85,22 @@ class SmartWalletSwapAlertNotify:
         # Calculate actual amounts (considering decimals)
         from_amount = tx_event.from_amount / (10**tx_event.from_decimals)
         to_amount = tx_event.to_amount / (10**tx_event.to_decimals)
-        pre_amount = tx_event.pre_token_amount / (10**tx_event.to_decimals)
-        post_amount = tx_event.post_token_amount / (10**tx_event.to_decimals)
+        
+        # 根据持仓变化方向判断代币兑换方向
+        pre_amount_int = tx_event.pre_token_amount
+        post_amount_int = tx_event.post_token_amount
+        direction = post_amount_int - pre_amount_int
+
+        if direction > 0:
+            # 从 SOL 到代币
+            pre_amount = pre_amount_int / (10**tx_event.to_decimals)
+            post_amount = post_amount_int / (10**tx_event.to_decimals)
+        elif direction < 0:
+            # 从代币到 SOL
+            pre_amount = pre_amount_int / (10**tx_event.from_decimals)
+            post_amount = post_amount_int / (10**tx_event.from_decimals)
+        else:
+            raise ValueError("代币数量没有变化的交易消息")
 
         # Calculate position change
         position_change = post_amount - pre_amount
