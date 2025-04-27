@@ -5,7 +5,6 @@ from solbot_common.log import logger
 from solders.keypair import Keypair  # type: ignore
 from solders.signature import Signature  # type: ignore
 from solders.transaction import VersionedTransaction  # type: ignore
-
 from trading.swap import SwapDirection, SwapInType
 from trading.transaction.base import TransactionSender
 from trading.transaction.builders.base import TransactionBuilder
@@ -14,18 +13,16 @@ from trading.transaction.builders.jupiter import JupiterTransactionBuilder
 from trading.transaction.builders.pump import PumpTransactionBuilder
 from trading.transaction.builders.ray_v4 import RaydiumV4TransactionBuilder
 from trading.transaction.protocol import TradingRoute
-from trading.transaction.sender import (
-    DefaultTransactionSender,
-    GMGNTransactionSender,
-    JitoTransactionSender,
-)
+from trading.transaction.sender import (DefaultTransactionSender,
+                                        GMGNTransactionSender,
+                                        JitoTransactionSender)
 
 
 class Swapper:
-    """交换服务，协调交换的构建和执行"""
+    """Exchange service, coordinates the building and execution of swaps"""
 
     def __init__(self, builder: TransactionBuilder, sender: TransactionSender):
-        """初始化交换服务"""
+        """Initialize exchange service"""
         self.builder = builder
         self.sender = sender
 
@@ -40,20 +37,20 @@ class Swapper:
         use_jito: bool = False,
         priority_fee: float | None = None,
     ) -> Signature | None:
-        """执行代币交换操作
+        """Execute token swap operation
 
         Args:
-            keypair (Keypair): 钱包密钥对
-            token_address (str): 代币地址
-            ui_amount (float): 交易数量
-            swap_direction (SwapDirection): 交易方向
-            slippage_bps (int): 滑点，以 bps 为单位
-            in_type (SwapInType | None, optional): 输入类型. Defaults to None.
-            use_jito (bool, optional): 是否使用 Jito. Defaults to False.
-            priority_fee (float | None, optional): 优先费用. Defaults to None.
+            keypair (Keypair): Wallet keypair
+            token_address (str): Token address
+            ui_amount (float): Transaction amount
+            swap_direction (SwapDirection): Swap direction
+            slippage_bps (int): Slippage in bps
+            in_type (SwapInType | None, optional): Input type. Defaults to None.
+            use_jito (bool, optional): Whether to use Jito. Defaults to False.
+            priority_fee (float | None, optional): Priority fee. Defaults to None.
 
         Returns:
-            Optional[Signature]: 交易签名，如果交易失败则返回 None
+            Optional[Signature]: Transaction signature, returns None if transaction fails
         """
         transaction = await self.builder.build_swap_transaction(
             keypair=keypair,
@@ -72,14 +69,14 @@ class Swapper:
 
 
 class AggregateTransactionBuilder(TransactionBuilder):
-    """聚合多个交易构建器,返回最快成功的结果"""
+    """Aggregates multiple transaction builders, returns the first successful result"""
 
     def __init__(self, rpc_client: AsyncClient, builders: list[TransactionBuilder]):
-        """初始化聚合构建器
+        """Initialize aggregate builder
 
         Args:
-            rpc_client (AsyncClient): RPC客户端
-            builders (List[TransactionBuilder]): 交易构建器列表
+            rpc_client (AsyncClient): RPC client
+            builders (List[TransactionBuilder]): List of transaction builders
         """
         super().__init__(rpc_client)
         self.builders = builders
@@ -96,10 +93,10 @@ class AggregateTransactionBuilder(TransactionBuilder):
         use_jito: bool = False,
         priority_fee: float | None = None,
     ) -> tuple[TransactionBuilder, VersionedTransaction]:
-        """尝试使用指定构建器构建交易
+        """Try to build transaction with specified builder
 
         Returns:
-            Tuple[TransactionBuilder, VersionedTransaction]: 返回构建器和构建的交易
+            Tuple[TransactionBuilder, VersionedTransaction]: Returns builder and built transaction
         """
         try:
             tx = await builder.build_swap_transaction(
@@ -128,18 +125,18 @@ class AggregateTransactionBuilder(TransactionBuilder):
         use_jito: bool = False,
         priority_fee: float | None = None,
     ) -> VersionedTransaction:
-        """并行尝试所有构建器,返回最快成功的交易
+        """Try all builders in parallel, return the first successful transaction
 
         Raises:
-            Exception: 当所有构建器都失败时抛出异常
+            Exception: Raises exception when all builders fail
 
         Returns:
-            VersionedTransaction: 构建好的交易
+            VersionedTransaction: Built transaction
         """
         if not self.builders:
             raise ValueError("No transaction builders provided")
 
-        # 创建所有构建器的任务
+        # Create tasks for all builders
         tasks = [
             self._try_build_with_builder(
                 builder,
@@ -155,33 +152,33 @@ class AggregateTransactionBuilder(TransactionBuilder):
             for builder in self.builders
         ]
 
-        # 等待第一个成功的结果
+        # Wait for the first successful result
         while tasks:
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
             for task in done:
                 try:
                     builder, tx = await task
-                    # 取消其他正在进行的任务
+                    # Cancel other ongoing tasks
                     for p in pending:
                         p.cancel()
                     logger.info(f"Successfully built transaction with {builder.__class__.__name__}")
                     return tx
                 except Exception:
-                    # 如果这个任务失败了,继续等待其他任务
+                    # If this task failed, continue waiting for other tasks
                     pass
 
-            # 更新剩余的任务
+            # Update remaining tasks
             tasks = list(pending)
 
         raise Exception("All transaction builders failed")
 
 
 class TradingService:
-    """交易服务，协调交易的构建和执行"""
+    """Trading service, coordinates the building and execution of trades"""
 
     def __init__(self, rpc_client: AsyncClient):
-        """初始化交易服务"""
+        """Initialize trading service"""
         self._rpc_client = rpc_client
         self._aggreage_txn_builder = AggregateTransactionBuilder(
             self._rpc_client,

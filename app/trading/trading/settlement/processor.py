@@ -1,6 +1,6 @@
-"""交易验证器
+"""Transaction Validator
 
-交易验证器用于验证交易的上链情况.
+Transaction validator is used to verify the on-chain status of transactions.
 """
 
 import asyncio
@@ -17,9 +17,9 @@ from .analyzer import TransactionAnalyzer
 
 
 class SwapSettlementProcessor:
-    """Swap交易结算处理器
+    """Swap Transaction Settlement Processor
 
-    验证交易结果并写入数据库
+    Validates transaction results and writes to database
     """
 
     def __init__(self):
@@ -37,10 +37,10 @@ class SwapSettlementProcessor:
         await session.commit()
 
     async def validate(self, tx_hash: Signature) -> TransactionStatus | None:
-        """验证交易是否已经上链.
+        """Validates whether a transaction has been confirmed on-chain.
 
-        调用 validate 会返回一个协程，协程会在 60 秒内等待交易的上链状态。
-        如果协程超时，则返回 None。
+        Calling validate returns a coroutine that waits for the transaction's on-chain status for 60 seconds.
+        If the coroutine times out, it returns None.
 
         Examples:
             >>> from solders.signature import Signature  # type: ignore
@@ -48,19 +48,19 @@ class SwapSettlementProcessor:
             >>> tx_hash = Signature.from_string("4uTy6e7h2SyxuwMyGsJ2Mxh3Rrj99CFeQ6uF1H8xFsEzW8xfrUZ9Xb8QxYutd5zt2cutP45CSPX3CypMAc3ykr2q")
             >>> status = await validator.validate(tx_hash)
             >>> if status == TransactionStatus.SUCCESS:
-            ...     print("交易已经上链")
+            ...     print("Transaction confirmed")
             ... elif status == TransactionStatus.FAILED:
-            ...     print("交易失败")
+            ...     print("Transaction failed")
             ... elif status == TransactionStatus.EXPIRED:
-            ...     print("交易超时")
+            ...     print("Transaction timed out")
             ... else:
-            ...     print("交易未知状态")
+            ...     print("Transaction status unknown")
 
         Args:
-            tx_hash (Signature): 交易 hash
+            tx_hash (Signature): Transaction hash
 
         Returns:
-            Coroutine[None, None, TransactionStatus | None]: 协程
+            Coroutine[None, None, TransactionStatus | None]: Coroutine
         """
         tx_status = None
         for _ in range(60):
@@ -79,15 +79,15 @@ class SwapSettlementProcessor:
         return TransactionStatus.EXPIRED
 
     async def process(self, signature: Signature | None, swap_event: SwapEvent) -> SwapRecord:
-        """处理交易
+        """Process transaction
 
         Args:
-            swap_event (SwapRecord): 交易记录
+            swap_event (SwapRecord): Transaction record
         """
         input_amount = swap_event.amount
         input_mint = swap_event.input_mint
         output_mint = swap_event.output_mint
-        # PERF: 需要优化，不应该将 deciamls 写死
+        # PERF: Needs optimization, decimals should not be hardcoded
         if swap_event.swap_mode == "ExactIn":
             input_token_decimals = 9
             output_token_decimals = 6

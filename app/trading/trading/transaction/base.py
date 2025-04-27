@@ -6,7 +6,7 @@ from solders.transaction import VersionedTransaction  # type: ignore
 
 
 class TransactionSender(ABC):
-    """交易发送器的抽象基类"""
+    """Abstract base class for transaction sender"""
 
     def __init__(self, rpc_client: AsyncClient):
         self.rpc_client = rpc_client
@@ -17,14 +17,14 @@ class TransactionSender(ABC):
         transaction: VersionedTransaction,
         **kwargs,
     ) -> Signature:
-        """发送交易
+        """Send transaction
 
         Args:
-            transaction (VersionedTransaction): 要发送的交易
-            **kwargs: 可选的关键字参数
+            transaction (VersionedTransaction): Transaction to send
+            **kwargs: Optional keyword arguments
 
         Returns:
-            Signature: 交易签名
+            Signature: Transaction signature
         """
         pass
 
@@ -33,12 +33,12 @@ class TransactionSender(ABC):
         self,
         transaction: VersionedTransaction,
     ) -> bool:
-        """模拟交易
+        """Simulate transaction
 
         Args:
-            transaction (VersionedTransaction): 要模拟的交易
+            transaction (VersionedTransaction): Transaction to simulate
 
         Returns:
-            bool: 模拟是否成功
+            bool: Whether simulation was successful
         """
         pass
