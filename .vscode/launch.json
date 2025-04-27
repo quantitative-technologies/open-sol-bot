@@ -35,6 +35,22 @@
                 }
             ],
             "justMyCode": false
+        },
+        {
+            "name": "Trading: Remote Attach",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5680
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/app/trading/trading",
+                    "remoteRoot": "/app/trading"
+                }
+            ],
+            "justMyCode": false
         }
     ]
 }

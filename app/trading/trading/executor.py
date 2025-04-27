@@ -9,7 +9,6 @@ from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from solders.keypair import Keypair  # type: ignore
 from solders.signature import Signature  # type: ignore
 from sqlmodel import select
-
 from trading.swap import SwapDirection, SwapInType
 from trading.transaction import TradingRoute, TradingService
 
@@ -59,7 +58,7 @@ class TradingExecutor:
         keypair = await self.__get_keypair(swap_event.user_pubkey)
         swap_in_type = SwapInType(swap_event.swap_in_type)
 
-        # 检查是否需要使用 Pump 协议进行交易
+        # Check if you need to use it Pump Transactions with agreement
         should_use_pump = False
         program_id = swap_event.program_id
 

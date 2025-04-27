@@ -51,6 +51,8 @@ services:
       context: .
       dockerfile: app/trading/Dockerfile
     restart: unless-stopped
+    ports:
+      - "5680:5680"  # Debug port
     volumes:
       - ./config.toml:/app/config.toml:ro
       - ./app/trading/trading:/app/trading:ro
@@ -59,7 +61,7 @@ services:
       - PYTHONPATH=/app/libs:/app
       - DB__MYSQL_URL=mysql+pymysql://root:root@mysql:3306/solana_trade_bot
       - DB__REDIS_URL=redis://redis:6379/0
-    command: ["trading.main"]
+    command: ["debugpy", "--listen", "0.0.0.0:5680", "--log-to", "/app/logs", "-m", "trading.main"]
     depends_on:
       mysql:
         condition: service_healthy

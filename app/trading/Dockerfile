@@ -3,7 +3,7 @@ FROM python:3.10-slim as builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
-    PDM_USE_VENV=false \
+    PDM_USE_VENV=true \
     PDM_INSTALL_PATH=/app \
     PROJECT_ROOT=/app
 
@@ -31,7 +31,7 @@ FROM builder as final
 # Install dependencies
 COPY ./libs /app/libs
 COPY ./app/trading/pyproject.toml /app/
-RUN pdm config python.use_venv false && \
-    pdm install -G local
+RUN pdm config && \
+    pdm install --no-self --no-editable -G :all
 
 ENTRYPOINT [ "pdm", "run", "python", "-m" ]

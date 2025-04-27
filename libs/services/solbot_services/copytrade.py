@@ -12,7 +12,7 @@ class CopyTradeService:
     async def get_by_target_wallet(
         cls, target_wallet: str, *, session: AsyncSession = NEW_ASYNC_SESSION
     ) -> list[CopyTrade]:
-        """ "获取指定目标钱包的活跃跟单"""
+        """ Get active orders for the specified target wallet"""
         stmt = select(CopyTrade).where(
             CopyTrade.target_wallet == target_wallet and CopyTrade.active == True
         )
@@ -24,7 +24,7 @@ class CopyTradeService:
     async def get_active_wallet_addresses(
         cls, *, session: AsyncSession = NEW_ASYNC_SESSION
     ) -> Sequence[str]:
-        """获取所有已激活的目标钱包地址
+        """Get all active target wallet addresses
 
         Returns:
             Sequence[str]: 已激活的目标钱包地址列表，去重后的结果

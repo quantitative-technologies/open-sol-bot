@@ -1,13 +1,12 @@
+from solbot_common.models.base import Base
 from sqlalchemy import BIGINT
 from sqlmodel import Field
-
-from solbot_common.models.base import Base
 
 
 class CopyTrade(Base, table=True):
     __tablename__ = "bot_copytrade"  # type: ignore
-    owner: str = Field(nullable=False, index=True, description="所属钱包")
-    chat_id: int = Field(nullable=False, index=True, sa_type=BIGINT, description="用户 ID")
+    owner: str = Field(nullable=False, index=True, description="Wallet")
+    chat_id: int = Field(nullable=False, index=True, sa_type=BIGINT, description="user ID")
     target_wallet: str = Field(nullable=False, index=True)
     wallet_alias: str | None = Field(nullable=True)
     is_fixed_buy: bool = Field(nullable=False, description="是否固定买入")

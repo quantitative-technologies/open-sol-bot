@@ -343,12 +343,12 @@ class TransactionAnalyzer:
         self.helius_api = HeliusAPI()
 
     async def analyze_transaction(self, tx_signature: str, user_account: str, mint: str) -> Result:
-        """分析交易详情
+        """Analyze transaction details
 
         Args:
-            tx_signature: 交易签名
+            tx_signature: Transaction signature
         """
-        # 获取交易详情
+        # Get transaction details
         tx_details = await self.helius_api.get_parsed_transaction(tx_signature)
         if len(tx_details) == 0:
             raise Exception("交易不存在")
