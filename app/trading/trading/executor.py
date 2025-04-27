@@ -9,7 +9,6 @@ from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from solders.keypair import Keypair  # type: ignore
 from solders.signature import Signature  # type: ignore
 from sqlmodel import select
-
 from trading.swap import SwapDirection, SwapInType
 from trading.transaction import TradingRoute, TradingService
 
@@ -32,10 +31,10 @@ class TradingExecutor:
         return Keypair.from_bytes(private_key)
 
     async def exec(self, swap_event: SwapEvent) -> Signature | None:
-        """执行交易
+        """Execute transaction
 
         Args:
-            swap_event (SwapEvent): 交易事件
+            swap_event (SwapEvent): Swap event
 
         Raises:
             ConnectTimeout: If connection to the RPC node times out
@@ -59,7 +58,7 @@ class TradingExecutor:
         keypair = await self.__get_keypair(swap_event.user_pubkey)
         swap_in_type = SwapInType(swap_event.swap_in_type)
 
-        # 检查是否需要使用 Pump 协议进行交易
+        # Check if we need to use Pump protocol for trading
         should_use_pump = False
         program_id = swap_event.program_id
 
@@ -76,7 +75,7 @@ class TradingExecutor:
                 logger.info(
                     f"Token {token_address} is launched on Raydium, using Raydium protocol to trade"
                 )
-                # 如果 token 在 Raydium 上启动，则使用 Raydium 协议进行交易
+                # If token is launched on Raydium, use Raydium protocol for trading
                 swap_event.program_id = RAY_V4_PROGRAM_ID
         except Exception as e:
             logger.exception(f"Failed to check launch status, cause: {e}")
@@ -84,12 +83,12 @@ class TradingExecutor:
         if should_use_pump:
             logger.info("Program ID is PUMP")
             trade_route = TradingRoute.PUMP
-        # NOTE: 测试下来不是很理想，暂时使用备选方案
+        # NOTE: Not ideal in testing, using alternative solution for now
         elif swap_event.program_id == RAY_V4_PROGRAM_ID:
             logger.info("Program ID is RayV4")
             trade_route = TradingRoute.RAYDIUM_V4
         elif program_id is None:
-            logger.warning("Program ID is Unknown, So We use thrid party to trade")
+            logger.warning("Program ID is Unknown, So We use third party to trade")
             trade_route = TradingRoute.DEX
         else:
             raise ValueError(f"Program ID is not supported, {swap_event.program_id}")

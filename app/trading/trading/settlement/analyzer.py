@@ -1,9 +1,9 @@
-"""交易分析器
+"""Transaction Analyzer
 
-负责解析交易的具体内容，包括：
-1. 分析交易输入输出
-2. 计算实际的交易数量
-3. 提取其他重要的交易信息
+Responsible for parsing transaction details, including:
+1. Analyzing transaction inputs and outputs
+2. Calculating actual transaction amounts
+3. Extracting other important transaction information
 """
 
 from typing import TypedDict
@@ -337,28 +337,28 @@ class Result(TypedDict):
 
 
 class TransactionAnalyzer:
-    """交易分析器"""
+    """Transaction Analyzer"""
 
     def __init__(self) -> None:
         self.helius_api = HeliusAPI()
 
     async def analyze_transaction(self, tx_signature: str, user_account: str, mint: str) -> Result:
-        """分析交易详情
+        """Analyze transaction details
 
         Args:
-            tx_signature: 交易签名
+            tx_signature: Transaction signature
         """
-        # 获取交易详情
+        # Get transaction details
         tx_details = await self.helius_api.get_parsed_transaction(tx_signature)
         if len(tx_details) == 0:
-            raise Exception("交易不存在")
+            raise Exception("Transaction does not exist")
         tx_detail = tx_details[0]
         fee = tx_detail["fee"]
         slot = tx_detail["slot"]
         timestamp = tx_detail["timestamp"]
         tx_type = tx_detail["type"]
         if tx_type != "SWAP":
-            raise NotImplementedError(f"不支持的交易类型: {tx_type}")
+            raise NotImplementedError(f"Unsupported transaction type: {tx_type}")
 
         sol_change = 0
         token_change = 0

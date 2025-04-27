@@ -13,7 +13,7 @@ from .base import TransactionSender
 
 
 class DefaultTransactionSender(TransactionSender):
-    """默认的交易发送器，使用普通 RPC 节点"""
+    """Default transaction sender, using regular RPC node"""
 
     def __init__(self, client: AsyncClient):
         super().__init__(client)
@@ -41,7 +41,7 @@ class DefaultTransactionSender(TransactionSender):
 
 
 class JitoTransactionSender(TransactionSender):
-    """Jito 交易发送器，使用支持 Jito 的 RPC 节点"""
+    """Jito transaction sender, using Jito-supported RPC node"""
 
     def __init__(self, rpc_client: AsyncClient):
         super().__init__(rpc_client)
@@ -68,7 +68,7 @@ class JitoTransactionSender(TransactionSender):
 
 
 class GMGNTransactionSender(TransactionSender):
-    """GMGN 交易发送器"""
+    """GMGN transaction sender"""
 
     def __init__(self, rpc_client: AsyncClient) -> None:
         self.rpc_client: AsyncClient = rpc_client
