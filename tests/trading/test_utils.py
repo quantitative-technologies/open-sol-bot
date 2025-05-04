@@ -1,14 +1,10 @@
 import pytest
 from solbot_common.constants import PUMP_FUN_PROGRAM
 from solders.pubkey import Pubkey
-from trading.utils import (
-    get_associated_bonding_curve,
-    get_async_client,
-    get_bonding_curve_account,
-    get_bonding_curve_pda,
-    get_global_account,
-    has_ata,
-)
+
+from libs.common.solbot_common.utils.utils import (
+    get_associated_bonding_curve, get_async_client, get_bonding_curve_account,
+    get_bonding_curve_pda, get_global_account)
 
 
 @pytest.mark.asyncio
