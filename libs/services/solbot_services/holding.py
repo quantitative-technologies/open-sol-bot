@@ -4,7 +4,7 @@ from solbot_common.utils.shyft import ShyftAPI
 from solbot_common.utils.utils import format_number
 
 
-# PERF: 暂时每次获取都调用 API，后续可以优化
+# PERF: The API is called every time you get it, and it can be optimized later.
 class HoldingService:
     def __init__(self) -> None:
         self.shyft = ShyftAPI(settings.api.shyft_api_key)

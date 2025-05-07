@@ -25,7 +25,9 @@ async def test_get_associated_bonding_curve():
 @pytest.mark.asyncio
 async def test_get_bonding_curve_account():
     client = get_async_client()
-    mint = Pubkey.from_string("7YYfWqoKvZmGfX4MgE9TuTpPZz9waHAUUxshFmwqpump")
+    #mint = Pubkey.from_string("7YYfWqoKvZmGfX4MgE9TuTpPZz9waHAUUxshFmwqpump")
+    mint_str = "A7S4UkbpAXSVfG196Qvr8TMvpvx3Lz2Q4X2RecuApump"
+    mint = Pubkey.from_string(mint_str)
     result = await get_bonding_curve_account(
         client,
         mint,

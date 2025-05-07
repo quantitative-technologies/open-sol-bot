@@ -77,8 +77,8 @@ class BondingCurveAccount:
     @classmethod
     def from_buffer(cls, buffer: bytes) -> "BondingCurveAccount":
         """
-        从字节缓冲区解析账户数据
-        格式: <Q Q Q Q Q Q ?
+        Resolve account data from byte buffer
+        Format: <Q Q Q Q Q Q ?
         Q: unsigned long long (8 bytes)
         ?: boolean (1 byte)
         """

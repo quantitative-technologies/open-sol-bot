@@ -36,8 +36,24 @@
     {
       "label": "运行 Trading 服务",
       "type": "shell",
-      "command": "uv run python app/trading/trading/main.py",
-      "problemMatcher": [],
+      "command": "uv run python -m debugpy --listen 5678 --wait-for-client app/trading/trading/main.py",
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "."
+          }
+        }
+      ],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -47,7 +63,7 @@
         "panel": "new",
         "focus": true
       },
-      "detail": "启动 Trading 服务"
+      "detail": "启动 Trading 服务 (调试模式)"
     },
     {
       "label": "运行 Tg Bot 服务",
