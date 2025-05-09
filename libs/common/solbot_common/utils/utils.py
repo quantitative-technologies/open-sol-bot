@@ -16,14 +16,25 @@ from solders.transaction_status import \
 from spl.token.instructions import get_associated_token_address
 
 
-def get_bonding_curve_pda(mint: Pubkey, program: Pubkey) -> Pubkey:
-    return Pubkey.find_program_address([b"bonding-curve", bytes(mint)], program)[0]
+def get_bonding_curve_pda(mint: Pubkey, program: Pubkey) -> tuple[Pubkey, int]:
+    """
+    Derives the associated bonding curve Program Derived Address (PDA) for a given mint.
+    
+    Args:
+        mint: The token mint address
+        program_id: The program ID for the bonding curve
+        
+    Returns:
+        Tuple of (bonding curve address, bump seed)
+    """
+
+    return Pubkey.find_program_address([b"bonding-curve", bytes(mint)], program)
 
 
 async def get_bonding_curve_account(
     client: AsyncClient, mint: Pubkey, program: Pubkey
 ) -> tuple[Pubkey, Pubkey, BondingCurveAccount] | None:
-    bonding_curve = get_bonding_curve_pda(mint, program)
+    bonding_curve = get_bonding_curve_pda(mint, program)[0]
     associated_bonding_curve = get_associated_token_address(bonding_curve, mint)
 
     account_info = await client.get_account_info_json_parsed(bonding_curve)
@@ -32,7 +43,7 @@ async def get_bonding_curve_account(
     value = account_info.value
     if value is None:
         return None
-    bonding_curve_account = BondingCurveAccount.from_buffer(bytes(value.data))
+    bonding_curve_account = BondingCurveAccount(bytes(value.data))
     return (bonding_curve, associated_bonding_curve, bonding_curve_account)
 
 
