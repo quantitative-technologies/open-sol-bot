@@ -31,7 +31,7 @@ class GlobalAccountCache:
                 return None
             data = {"global": base64.b64encode(val).decode()}
             await self.redis.set(f"{self.prefix}:{program}", json.dumps(data))
-            return GlobalAccount.from_buffer(val)
+            return GlobalAccount(val)
         json_data = json.loads(val)
         global_account_bytes = base64.b64decode(json_data["global"])
-        return GlobalAccount.from_buffer(global_account_bytes)
+        return GlobalAccount(global_account_bytes)

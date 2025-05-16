@@ -1393,6 +1393,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "debugpy" },
     { name = "jupyter" },
     { name = "pre-commit" },
     { name = "py" },
@@ -1417,6 +1418,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "debugpy", specifier = ">=1.8.12" },
     { name = "jupyter", specifier = ">=1.1.1" },
     { name = "pre-commit", specifier = ">=4.0.1" },
     { name = "py", specifier = "==1.10.0" },
@@ -2340,6 +2342,11 @@ dependencies = [
     { name = "sentry-sdk" },
     { name = "solana" },
     { name = "solana-tx-parser" },
+    { name = "solbot-cache" },
+    { name = "solbot-common" },
+    { name = "solbot-db" },
+    { name = "solbot-services" },
+    { name = "solbot-yellowstone-grpc" },
     { name = "solders" },
     { name = "sqlmodel" },
     { name = "tomli" },
@@ -2364,6 +2371,11 @@ requires-dist = [
     { name = "sentry-sdk", specifier = ">=2.21.0" },
     { name = "solana", specifier = ">=0.35.1" },
     { name = "solana-tx-parser", specifier = ">=0.0.1" },
+    { name = "solbot-cache", directory = "libs/cache" },
+    { name = "solbot-common", directory = "libs/common" },
+    { name = "solbot-db", directory = "libs/db" },
+    { name = "solbot-services", directory = "libs/services" },
+    { name = "solbot-yellowstone-grpc", directory = "libs/yellowstone_grpc" },
     { name = "solders", specifier = ">=0.21.0" },
     { name = "sqlmodel", specifier = ">=0.0.22" },
     { name = "tomli", specifier = ">=2.1.0" },
