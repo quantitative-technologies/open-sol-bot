@@ -28,7 +28,6 @@ _EXPECTED_DISCRIMINATOR: Final[bytes] = struct.pack("<Q", 9183522199395952807)
 
 #@dataclass
 class GlobalAccount:
-    discriminator: int
     initialized: bool
     authority: Pubkey
     fee_recipient: Pubkey
@@ -50,7 +49,23 @@ class GlobalAccount:
             raise ValueError("Invalid global account discriminator")
 
         parsed = GLOBAL_ACCOUNT_LAYOUT.parse(data[8:])
-        self.__dict__.update(parsed)
+        
+        # Convert byte arrays to Pubkey objects
+        self.authority = Pubkey.from_bytes(parsed.authority)
+        self.fee_recipient = Pubkey.from_bytes(parsed.fee_recipient)
+        self.withdrawal_authority = Pubkey.from_bytes(parsed.withdrawal_authority)
+        self.fee_recipients = [Pubkey.from_bytes(recipient) for recipient in parsed.fee_recipients]
+        
+        # Set other fields directly
+        self.initialized = parsed.initialized
+        self.initial_virtual_token_reserves = parsed.initial_virtual_token_reserves
+        self.initial_virtual_sol_reserves = parsed.initial_virtual_sol_reserves
+        self.initial_real_token_reserves = parsed.initial_real_token_reserves
+        self.token_total_supply = parsed.token_total_supply
+        self.fee_basis_points = parsed.fee_basis_points
+        self.enable_migration = parsed.enable_migration
+        self.pool_migration_fee = parsed.pool_migration_fee
+        self.creator_fee = parsed.creator_fee
 
     def get_initial_buy_price(self, amount: int) -> int:
         """
