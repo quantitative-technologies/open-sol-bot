@@ -231,8 +231,8 @@
           "isSigner": false
         },
         {
-          "name": "rent",
-          "isMut": false,
+          "name": "creator_vault",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -304,8 +304,8 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
+          "name": "creator_vault",
+          "isMut": true,
           "isSigner": false
         },
         {

@@ -39,6 +39,7 @@ class PumpFunInterface:
         fee_recipient: Pubkey,
         bonding_curve_pda: Pubkey,
         associated_bonding_curve: Pubkey,
+        bonding_curve_creator_vault: Pubkey,
         ata: Pubkey,
     ) -> Instruction:
         buy_builder = self.program.methods["buy"]
@@ -56,7 +57,7 @@ class PumpFunInterface:
                     "global": PUMP_GLOBAL_ACCOUNT,
                     "system_program": SYSTEM_PROGRAM_ID,
                     "token_program": TOKEN_PROGRAM_ID,
-                    "rent": RENT_PROGRAM_ID,
+                    "creator_vault": bonding_curve_creator_vault,
                     "event_authority": EVENT_AUTHORITY,
                     "program": PUMP_FUN_PROGRAM,
                 }

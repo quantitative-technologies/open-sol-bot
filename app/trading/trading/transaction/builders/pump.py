@@ -6,7 +6,7 @@ from solbot_common.constants import (ASSOCIATED_TOKEN_PROGRAM, PUMP_BUY_METHOD,
                                      SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID, WSOL)
 from solbot_common.IDL.pumpfun import PumpFunInterface
 from solbot_common.log import logger
-from solbot_common.utils.utils import (get_bonding_curve_account,
+from solbot_common.utils.utils import (get_bonding_curve_account, get_bonding_curve_pda_creator_vault,
                                        get_global_account)
 from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
@@ -60,7 +60,7 @@ class PumpTransactionBuilder(TransactionBuilder):
         if result is None:
             raise BondingCurveNotFound("bonding curve account not found")
         bonding_curve, associated_bonding_curve, bonding_curve_account = result
-
+        bonding_curve_pda,bump = get_bonding_curve_pda_creator_vault(bonding_curve_account.creator, pump_program)
         global_account = await get_global_account(self.rpc_client, pump_program)
         if global_account is None:
             raise ValueError("global account not found")
@@ -139,7 +139,7 @@ class PumpTransactionBuilder(TransactionBuilder):
                 "global": PUMP_GLOBAL_ACCOUNT,
                 "system_program": SYSTEM_PROGRAM_ID,
                 "token_program": TOKEN_PROGRAM_ID,
-                "rent": RENT_PROGRAM_ID,
+                "creator_vault": bonding_curve_pda,
                 "event_authority": PUMP_FUN_ACCOUNT,
                 "program": PUMP_FUN_PROGRAM,
             }
@@ -161,9 +161,8 @@ class PumpTransactionBuilder(TransactionBuilder):
                 "user": owner,
                 "global": PUMP_GLOBAL_ACCOUNT,
                 "system_program": SYSTEM_PROGRAM_ID,
+                "creator_vault": bonding_curve_pda,
                 "token_program": TOKEN_PROGRAM_ID,
-                "associated_token_program": ASSOCIATED_TOKEN_PROGRAM,
-                "rent": RENT_PROGRAM_ID,
                 "event_authority": PUMP_FUN_ACCOUNT,
                 "program": PUMP_FUN_PROGRAM,
             }

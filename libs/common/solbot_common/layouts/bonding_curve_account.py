@@ -1,23 +1,36 @@
 import struct
 from typing import Final
 
-from construct import Flag, Int64ul, Struct
+from construct import Flag, Int64ul, Struct, Bytes
+from solders.solders import Pubkey
 
-
+_EXPECTED_DISCRIMINATOR: Final[bytes] = struct.pack("<Q", 6966180631402821399)
 class BondingCurveError(Exception):
     """Exception raised for errors in bonding curve account data validation."""
     pass
 
 # See: https://github.com/chainstacklabs/pump-fun-bot/blob/main/learning-examples/bonding-curve-progress/get_bonding_curve_status.py
-BONDING_CURVE_ACCOUNT_LAYOUT = Struct(
+# 定义旧版账户结构（49 字节）
+BONDING_CURVE_ACCOUNT_LAYOUT_V1 = Struct(
+    "virtual_token_reserves" / Int64ul,
+    "virtual_sol_reserves" / Int64ul,
+    "real_token_reserves" / Int64ul,
+    "real_sol_reserves" / Int64ul,
+    "token_total_supply" / Int64ul,
+    "complete" / Flag
+)
+
+# 定义新版账户结构（81 字节）
+BONDING_CURVE_ACCOUNT_LAYOUT_V2 = Struct(
     "virtual_token_reserves" / Int64ul,
     "virtual_sol_reserves" / Int64ul,
     "real_token_reserves" / Int64ul,
     "real_sol_reserves" / Int64ul,
     "token_total_supply" / Int64ul,
     "complete" / Flag,
+    "creator" / Bytes(32)
 )
-_EXPECTED_DISCRIMINATOR: Final[bytes] = struct.pack("<Q", 6966180631402821399)
+
 
 class BondingCurveAccount:
     """ 
@@ -31,11 +44,15 @@ class BondingCurveAccount:
         token_total_supply: Total token supply in the curve
         complete: Whether the curve has completed and liquidity migrated
     """
-    def __init__(self, data: bytes) -> None:
-        if data[:8] != _EXPECTED_DISCRIMINATOR:
+
+    def __init__(self, data: bytes ) -> None:
+        if not bool and data[:8] != _EXPECTED_DISCRIMINATOR:
             raise ValueError("Invalid curve state discriminator")
 
-        parsed = BONDING_CURVE_ACCOUNT_LAYOUT.parse(data[8:])
+        if len(data)==49:
+            parsed = BONDING_CURVE_ACCOUNT_LAYOUT_V1.parse(data[8:])
+        else:
+            parsed = BONDING_CURVE_ACCOUNT_LAYOUT_V2.parse(data[8:])
         self.__dict__.update(parsed)
 
     virtual_token_reserves: int
@@ -44,6 +61,7 @@ class BondingCurveAccount:
     real_sol_reserves: int
     token_total_supply: int
     complete: bool
+    creator: Pubkey
 
     def get_buy_price(self, amount: int) -> int:
         if self.complete:

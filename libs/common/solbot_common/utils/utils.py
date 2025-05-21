@@ -29,12 +29,26 @@ def get_bonding_curve_pda(mint: Pubkey, program: Pubkey) -> tuple[Pubkey, int]:
     """
 
     return Pubkey.find_program_address([b"bonding-curve", bytes(mint)], program)
+    # return Pubkey.find_program_address([b"creator-vault", bytes(mint)], program)
+def get_bonding_curve_pda_creator_vault(mint: Pubkey, program: Pubkey) :
+    """
+    Derives the associated bonding curve Program Derived Address (PDA) for a given mint.
 
+    Args:
+        mint: The token mint address
+        program_id: The program ID for the bonding curve
+
+    Returns:
+        Tuple of (bonding curve address, bump seed)
+    """
+    # creator - vault
+    # return Pubkey.find_program_address([b"bonding-curve", bytes(mint)], program)
+    return Pubkey.find_program_address([b"creator-vault", bytes(mint)], program)
 
 async def get_bonding_curve_account(
     client: AsyncClient, mint: Pubkey, program: Pubkey
 ) -> tuple[Pubkey, Pubkey, BondingCurveAccount] | None:
-    bonding_curve = get_bonding_curve_pda(mint, program)[0]
+    bonding_curve, bump = get_bonding_curve_pda(mint, program)
     associated_bonding_curve = get_associated_token_address(bonding_curve, mint)
 
     account_info = await client.get_account_info_json_parsed(bonding_curve)
@@ -44,7 +58,8 @@ async def get_bonding_curve_account(
     if value is None:
         return None
     bonding_curve_account = BondingCurveAccount(bytes(value.data))
-    return (bonding_curve, associated_bonding_curve, bonding_curve_account)
+    return bonding_curve, associated_bonding_curve, bonding_curve_account
+
 
 
 async def get_global_account(client: AsyncClient, program: Pubkey) -> GlobalAccount | None:
