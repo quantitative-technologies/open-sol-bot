@@ -6,29 +6,23 @@ from solana.rpc.commitment import Processed
 from solana.rpc.types import TokenAccountOpts
 from solbot_cache import get_min_balance_rent
 from solbot_cache.rayidum import get_preferred_pool
-from solbot_common.constants import ACCOUNT_LAYOUT_LEN, SOL_DECIMAL, TOKEN_PROGRAM_ID, WSOL
-from solbot_common.utils.pool import (
-    AmmV4PoolKeys,
-    get_amm_v4_reserves,
-    make_amm_v4_swap_instruction,
-)
-from solbot_common.utils.utils import get_associated_token_address, get_token_balance
-from solders.instruction import Instruction  # type: ignore[reportMissingModuleSource]
+from solbot_common.constants import (ACCOUNT_LAYOUT_LEN, SOL_DECIMAL,
+                                     TOKEN_PROGRAM_ID, WSOL)
+from solbot_common.utils.pool import (AmmV4PoolKeys, get_amm_v4_reserves,
+                                      make_amm_v4_swap_instruction)
+from solbot_common.utils.utils import (get_associated_token_address,
+                                       get_token_balance)
+from solders.instruction import \
+    Instruction  # type: ignore[reportMissingModuleSource]
 from solders.keypair import Keypair  # type: ignore[reportMissingModuleSource]
 from solders.pubkey import Pubkey  # type: ignore[reportMissingModuleSource]
 from solders.system_program import (  # type: ignore[reportMissingModuleSource]
-    CreateAccountWithSeedParams,
-    create_account_with_seed,
-)
+    CreateAccountWithSeedParams, create_account_with_seed)
 from solders.transaction import VersionedTransaction  # type: ignore
-from spl.token.instructions import (
-    CloseAccountParams,  # type: ignore
-    InitializeAccountParams,
-    close_account,
-    create_associated_token_account,
-    initialize_account,
-)
-
+from spl.token.instructions import CloseAccountParams  # type: ignore
+from spl.token.instructions import (InitializeAccountParams, close_account,
+                                    create_associated_token_account,
+                                    initialize_account)
 from trading.swap import SwapDirection, SwapInType
 from trading.tx import build_transaction
 
@@ -43,10 +37,10 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
         sol_in: float,
         slippage_bps: int,
     ) -> list[Instruction]:
-        """构建购买代币的指令列表
+        """Build a list of instructions for buying tokens
 
         Args:
-            payer_keypair: 支付者的密钥对
+            payer_keypair: Payer's key pair
             token_address: 代币地址
             sol_in: 输入的SOL数量
             slippage_bps: 滑点，以基点(bps)为单位，1bps = 0.01%
@@ -68,13 +62,13 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             market_data=pool_data["market_data"],
         )
 
-        # 确定代币铸币厂
+        # Determine the token mint
         token_mint = pool_keys.base_mint if pool_keys.base_mint != WSOL else pool_keys.quote_mint
 
-        # 计算交易金额
+        # Calculate transaction amount
         amount_in = int(sol_in * SOL_DECIMAL)
 
-        # 获取池子储备量
+        # Get pool reserves
         base_reserve, quote_reserve, token_decimal = await get_amm_v4_reserves(pool_keys)
 
         # 计算预期输出量

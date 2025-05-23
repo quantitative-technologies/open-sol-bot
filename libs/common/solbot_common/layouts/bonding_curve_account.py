@@ -1,8 +1,8 @@
 import struct
 from typing import Final
 
-from construct import Flag, Int64ul, Struct, Bytes
-from solders.solders import Pubkey
+from construct import Bytes, Flag, Int64ul, Struct
+from solders.pubkey import Pubkey
 
 _EXPECTED_DISCRIMINATOR: Final[bytes] = struct.pack("<Q", 6966180631402821399)
 class BondingCurveError(Exception):
@@ -46,7 +46,8 @@ class BondingCurveAccount:
     """
 
     def __init__(self, data: bytes ) -> None:
-        if not bool and data[:8] != _EXPECTED_DISCRIMINATOR:
+        #if not bool and data[:8] != _EXPECTED_DISCRIMINATOR:
+        if data[:8] != _EXPECTED_DISCRIMINATOR:
             raise ValueError("Invalid curve state discriminator")
 
         if len(data)==49:
