@@ -11,7 +11,6 @@ from solbot_common.types.swap import SwapEvent, SwapResult
 from solbot_common.utils.utils import get_async_client
 from solbot_db.redis import RedisClient
 from solders.signature import Signature  # type: ignore
-
 from trading.copytrade import CopyTradeProcessor
 from trading.executor import TradingExecutor
 from trading.settlement import SwapSettlementProcessor
@@ -23,14 +22,14 @@ class Trading:
         self.rpc_client = get_async_client()
         self.trading_executor = TradingExecutor(self.rpc_client)
         self.swap_settlement_processor = SwapSettlementProcessor()
-        # 创建多个消费者实例
-        self.num_consumers = 3  # 可以根据需要调整消费者数量
+        # Create multiple consumer instances
+        self.num_consumers = 3  # Adjust number of consumers as needed
         self.swap_event_consumers = []
         for i in range(self.num_consumers):
             consumer = SwapEventConsumer(
                 self.redis,
                 "trading:swap_event",
-                f"trading:new_swap_event:{i}",  # 为每个消费者创建唯一的名称
+                f"trading:new_swap_event:{i}",  # Create unique name for each consumer
             )
             consumer.register_callback(self._process_swap_event)
             self.swap_event_consumers.append(consumer)
@@ -38,13 +37,13 @@ class Trading:
         self.copytrade_processor = CopyTradeProcessor()
 
         self.swap_result_producer = SwapResultProducer(self.redis)
-        # 添加任务池和信号量
+        # Add task pool and semaphore
         self.task_pool = set()
         self.max_concurrent_tasks = 10
         self.semaphore = asyncio.Semaphore(self.max_concurrent_tasks)
 
     async def _process_single_swap_event(self, swap_event: SwapEvent):
-        """处理单个交易事件的核心逻辑"""
+        """Process core logic for a single swap event"""
         async with self.semaphore:
             logger.info(f"Processing swap event: {swap_event}")
 
@@ -59,7 +58,7 @@ class Trading:
                 return
             except Exception as e:
                 logger.exception(f"Failed to process swap event: {swap_event}")
-                # 即使发生错误也要记录结果
+                # Record result even if an error occurs
                 await self._record_failed_swap(swap_event)
                 raise e
 
@@ -72,7 +71,7 @@ class Trading:
         max_time=2,
     )
     async def _execute_swap(self, swap_event: SwapEvent) -> Signature | None:
-        """执行交易并返回签名"""
+        """Execute transaction and return signature"""
         sig = await self.trading_executor.exec(swap_event)
         logger.info(f"Transaction submitted: {sig}")
         return sig
@@ -86,7 +85,7 @@ class Trading:
         max_time=2,
     )
     async def _record_swap_result(self, sig: Signature | None, swap_event: SwapEvent) -> SwapResult:
-        """记录交易结果"""
+        """Record transaction result"""
         if not sig:
             return await self._record_failed_swap(swap_event)
 
@@ -105,7 +104,7 @@ class Trading:
         return swap_result
 
     async def _record_failed_swap(self, swap_event: SwapEvent) -> SwapResult:
-        """记录失败的交易结果"""
+        """Record failed transaction result"""
         swap_result = SwapResult(
             swap_event=swap_event,
             user_pubkey=swap_event.user_pubkey,
@@ -116,25 +115,25 @@ class Trading:
         return swap_result
 
     async def _process_swap_event(self, swap_event: SwapEvent):
-        """创建新的任务来处理交易事件"""
+        """Create new task to process swap event"""
         task = asyncio.create_task(self._process_single_swap_event(swap_event))
         self.task_pool.add(task)
         task.add_done_callback(self.task_pool.discard)
 
     async def start(self):
         processor_task = asyncio.create_task(self.copytrade_processor.start())
-        # 添加任务完成回调以处理可能的异常
+        # Add task completion callback to handle potential exceptions
         processor_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
-        # 启动所有消费者
+        # Start all consumers
         for consumer in self.swap_event_consumers:
             await consumer.start()
 
     async def stop(self):
-        """优雅关闭所有消费者"""
-        # 停止跟单交易
+        """Gracefully stop all consumers"""
+        # Stop copy trading
         self.copytrade_processor.stop()
 
-        # 停止所有消费者
+        # Stop all consumers
         for consumer in self.swap_event_consumers:
             consumer.stop()
 

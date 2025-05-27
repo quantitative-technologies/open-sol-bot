@@ -13,13 +13,13 @@ class ActivationCodeService:
     @provide_session
     async def generate_code(self, seconds: int, *, session=NEW_ASYNC_SESSION) -> str:
         """
-        生成新的激活码
-        :param seconds: 激活码激活后的有效时长
-        :return: 生成的激活码
+        Generate new activation code
+        :param seconds: Valid duration in seconds after activation
+        :return: Generated activation code
         """
         while True:
             code = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
-            # 检查code是否已存在
+            # Check if code already exists
             result = await session.execute(
                 select(ActivationCode).where(ActivationCode.code == code)
             )
@@ -35,9 +35,9 @@ class ActivationCodeService:
     #     self, code: str, *, session=NEW_ASYNC_SESSION
     # ) -> bool:
     #     """
-    #     检查激活码是否有效
-    #     :param activation_code: 激活码
-    #     :return: 是否有效
+    #     Check whether the activation code is valid
+    #     :param activation_code: Activation code
+    #     :return: Is it valid or not
     #     """
     #     result = await session.execute(
     #         select(ActivationCode).where(ActivationCode.code == code)
@@ -49,12 +49,12 @@ class ActivationCodeService:
     @provide_session
     async def activate_user(self, chat_id: int, code: str, *, session=NEW_ASYNC_SESSION) -> bool:
         """
-        激活用户
-        :param chat_id: 用户的chat_id
-        :param code: 激活码
-        :return: (是否激活成功, 消息)
+        Activate user
+        :param chat_id: User's chat_id
+        :param code: Activation code
+        :return: Whether activation was successful
         """
-        # 查询激活码
+        # Query activation code
         result = await session.execute(
             select(ActivationCode).where(ActivationCode.code == code, ActivationCode.used == False)
         )
@@ -62,12 +62,12 @@ class ActivationCodeService:
         if not activation_code:
             return False
 
-        # 更新激活码状态
+        # Update activation code status
         activation_code.used = True
         activation_code.used_by = chat_id
         activation_code.used_at = datetime.now()
 
-        # 更新或创建用户授权
+        # Update or create user license
         result = await session.execute(select(UserLicense).where(UserLicense.chat_id == chat_id))
         user_license = result.scalar_one_or_none()
 
@@ -87,9 +87,9 @@ class ActivationCodeService:
         self, chat_id: int, *, session=NEW_ASYNC_SESSION
     ) -> UserLicense | None:
         """
-        获取用户授权信息
-        :param chat_id: 用户的chat_id
-        :return: 用户授权信息
+        Get user license information
+        :param chat_id: User's chat_id
+        :return: User license information
         """
         result = await session.execute(select(UserLicense).where(UserLicense.chat_id == chat_id))
         return result.scalar_one_or_none()
@@ -97,9 +97,9 @@ class ActivationCodeService:
     @provide_session
     async def is_user_authorized(self, chat_id: int, *, session=NEW_ASYNC_SESSION) -> bool:
         """
-        检查用户是否有可用时长
-        :param chat_id: 用户的chat_id
-        :return: 是否有可用时长
+        Check if user has available time
+        :param chat_id: User's chat_id
+        :return: Whether user has available time
         """
         user_license = await self.get_user_license(chat_id, session=session)
         return user_license is not None and user_license.expired_timestamp > int(time.time())
@@ -109,10 +109,10 @@ class ActivationCodeService:
         self, chat_id: int, seconds: int = 1, *, session=NEW_ASYNC_SESSION
     ) -> bool:
         """
-        扣除用户使用时长
-        :param chat_id: 用户的chat_id
-        :param minutes: 要扣除的分钟数
-        :return: 是否扣除成功
+        Deduct user's usage time
+        :param chat_id: User's chat_id
+        :param seconds: Number of seconds to deduct
+        :return: Whether deduction was successful
         """
         result = await session.execute(select(UserLicense).where(UserLicense.chat_id == chat_id))
         user_license = result.scalar_one_or_none()
@@ -125,9 +125,9 @@ class ActivationCodeService:
 
     @provide_session
     async def get_user_expired_timestamp(self, chat_id: int, *, session=NEW_ASYNC_SESSION) -> int:
-        """获取到期时间（秒）
-        :param chat_id: 用户的chat_id
-        :return: 用户到期时间（秒）
+        """Get expiration time (in seconds)
+        :param chat_id: User's chat_id
+        :return: User's expiration time (in seconds)
         """
         result = await session.execute(
             select(UserLicense.expired_timestamp).where(UserLicense.chat_id == chat_id)

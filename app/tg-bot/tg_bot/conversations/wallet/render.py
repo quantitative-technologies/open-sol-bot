@@ -3,7 +3,6 @@ from aiogram.enums import ParseMode
 from solbot_cache.wallet import WalletCache
 from solbot_common.config import settings
 from solbot_common.utils.shyft import ShyftAPI
-
 from tg_bot.keyboards.wallet import get_wallet_keyboard
 from tg_bot.services.user import UserService
 from tg_bot.templates import render_wallet_message
@@ -14,12 +13,12 @@ wallet_cache = WalletCache()
 
 
 async def render(update: types.Message | types.CallbackQuery) -> dict:
-    # 获取用户信息
+    # Get user information
     if isinstance(update, types.CallbackQuery):
-        # 从回调查询中获取用户信息
+        # Get user information from callback query
         user = update.from_user
     else:
-        # 从消息中获取用户信息
+        # Get user information from message
         user = update.from_user
 
     if user is None:

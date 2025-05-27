@@ -7,7 +7,7 @@ def notify_swap_keyboard(tx_event: TxEvent) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="立即交易",
+                    text="Trade Now",
                     callback_data=f"swap:refresh_{tx_event.mint}",
                 )
             ],

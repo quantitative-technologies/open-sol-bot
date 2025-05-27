@@ -6,7 +6,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 from solbot_common.log import logger
 from solbot_common.types.copytrade import CopyTrade
-
 from tg_bot.conversations.copytrade.render import render
 from tg_bot.conversations.states import CopyTradeStates
 from tg_bot.keyboards.common import back_keyboard, confirm_keyboard
@@ -47,7 +46,7 @@ async def handle_copytrade_selection(callback: CallbackQuery, state: FSMContext)
     copytrade = await copy_trade_service.get_by_id(copytrade_id)
     copytrade_settings = copytrade
     if copytrade is None:
-        await callback.answer("❌ 跟单不存在或已被删除")
+        await callback.answer("❌ The order does not exist or has been deleted")
         return
 
     # Store copytrade ID in state
@@ -78,7 +77,7 @@ async def start_set_alias(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入钱包别名：",
+        "👋 Please enter wallet alias:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -156,7 +155,7 @@ async def start_set_fixed_buy_amount(callback: CallbackQuery, state: FSMContext)
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入固定买入数量：",
+        "👋 Please enter fixed buy amount:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -188,7 +187,7 @@ async def handle_set_fixed_buy_amount(message: Message, state: FSMContext):
     try:
         fixed_buy_amount = float(fixed_buy_amount)
     except ValueError:
-        msg = await message.reply("❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid buy quantity, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -200,7 +199,7 @@ async def handle_set_fixed_buy_amount(message: Message, state: FSMContext):
         return
 
     if fixed_buy_amount <= 0 or fixed_buy_amount < 0.00000001:
-        msg = await message.reply("❌ 无效的买入数量，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid buy quantity, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -378,7 +377,7 @@ async def start_set_priority(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入优先费用:",
+        "👋 Please enter priority fee:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -410,7 +409,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
     try:
         priority = float(priority)
     except ValueError:
-        msg = await message.reply("❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid priority fees, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -422,7 +421,7 @@ async def handle_set_priority(message: Message, state: FSMContext):
         return
 
     if priority <= 0:
-        msg = await message.reply("❌ 无效的优先费用，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid priority fees, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -553,7 +552,7 @@ async def start_set_custom_slippage(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入自定义滑点:",
+        "👋 Please enter a custom slip point:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -585,7 +584,7 @@ async def handle_set_custom_slippage(message: Message, state: FSMContext):
     try:
         custom_slippage = float(custom_slippage)
     except ValueError:
-        msg = await message.reply("❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid custom slippage, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -597,7 +596,7 @@ async def handle_set_custom_slippage(message: Message, state: FSMContext):
         return
 
     if custom_slippage <= 0 or custom_slippage > 100:
-        msg = await message.reply("❌ 无效的自定义滑点，请重新输入：", reply_markup=ForceReply())
+        msg = await message.reply("❌ Invalid custom slippage, please re-enter:", reply_markup=ForceReply())
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
         if message.bot is not None:
@@ -652,13 +651,13 @@ async def delete_copytrade(callback: CallbackQuery, state: FSMContext):
         logger.warning("Message is not a Message object")
         return
 
-    # 记录当前消息，如果后续确认删除的话，当前这条消息也需要被删除
+    # Record current message, if deletion is confirmed later, this message also needs to be deleted
     await state.update_data(
         original_message_id=callback.message.message_id,
         original_chat_id=callback.message.chat.id,
     )
 
-    text = "⚠️ 您正在删除一个跟单交易, 请您确认:"
+    text = "⚠️ You are about to delete a copy trade, please confirm:"
     await callback.message.reply(
         text,
         parse_mode="HTML",
@@ -686,7 +685,7 @@ async def confirm_delete_copytrade(callback: CallbackQuery, state: FSMContext):
 
     await copy_trade_service.delete(copytrade_settings)
 
-    # 删除 原始消息
+    # Delete original message
     original_message_id = data.get("original_message_id")
     original_chat_id = data.get("original_chat_id")
     if (
@@ -698,9 +697,9 @@ async def confirm_delete_copytrade(callback: CallbackQuery, state: FSMContext):
             chat_id=original_chat_id, message_id=original_message_id
         )
 
-    # 发送删除成功的消息
+    # Send delete success message
     await callback.message.edit_text(
-        "✅ 您已成功删除一个跟单交易",
+        "✅ You have successfully deleted a copy trade",
         parse_mode="HTML",
         reply_markup=back_keyboard("back_to_copytrade"),
     )
@@ -719,7 +718,7 @@ async def cancel_delete_copytrade(callback: CallbackQuery, state: FSMContext):
         logger.warning("Message is not a Message object")
         return
 
-    # 删除 确认消息
+    # Delete confirmation message
     await callback.message.delete()
 
 

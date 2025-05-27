@@ -2,7 +2,9 @@ from collections.abc import Sequence
 from typing import Literal
 
 from solbot_common.config import settings
-from solbot_common.cp.monitor_events import MonitorEvent, MonitorEventConsumer, MonitorEventType
+from solbot_common.cp.monitor_events import (MonitorEvent,
+                                             MonitorEventConsumer,
+                                             MonitorEventType)
 from solbot_common.log import logger
 from solbot_common.models.tg_bot.monitor import Monitor
 from solbot_db.redis import RedisClient
@@ -39,29 +41,29 @@ class TxMonitor:
             raise ValueError("Invalid mode")
 
     async def start(self):
-        """启动监听器"""
-        # 注册事件处理器
+        """Start the monitor"""
+        # Register event handlers
         self.events.register_handler(MonitorEventType.RESUME, self._handle_resume_event)
         self.events.register_handler(MonitorEventType.PAUSE, self._handle_pause_event)
 
-        # 订阅事件
+        # Subscribe to events
         pubsub = await self.events.subscribe()
         logger.info("Transaction monitor started")
         logger.info(f"Mode: {self.mode}")
 
-        # 启动监听器
+        # Start the monitor
         await self.monitor.start()
 
-        # 从数据库中获取已激活的目标地址
+        # Get active target addresses from database
         monitor_addresses = await Monitor.get_active_wallet_addresses()
         copytrade_addresses = await CopyTradeService.get_active_wallet_addresses()
-        # 合并两个列表
+        # Merge the two lists
         active_wallet_addresses = list(set(list(monitor_addresses) + list(copytrade_addresses)))
         for address in active_wallet_addresses:
             await self.monitor.subscribe_wallet_transactions(Pubkey.from_string(address))
             logger.debug(f"Subscribed to wallet: {address}")
 
-        # 开始处理事件
+        # Start processing events
         logger.info("Start processing monitor events")
         while True:
             try:
@@ -73,12 +75,12 @@ class TxMonitor:
                 logger.error(f"Error processing monitor event: {e}")
 
     async def stop(self):
-        """停止监听器"""
+        """Stop the monitor"""
         await self.events.unsubscribe()
         await self.monitor.stop()
 
     async def _handle_resume_event(self, event: MonitorEvent):
-        """处理恢复监听事件"""
+        """Handle resume monitoring event"""
         try:
             wallet = Pubkey.from_string(event.target_wallet)
             await self.monitor.subscribe_wallet_transactions(wallet)
@@ -88,7 +90,7 @@ class TxMonitor:
             raise
 
     async def _handle_pause_event(self, event: MonitorEvent):
-        """处理暂停监听事件"""
+        """Handle pause monitoring event"""
         try:
             wallet = Pubkey.from_string(event.target_wallet)
             await self.monitor.unsubscribe_wallet_transactions(wallet)

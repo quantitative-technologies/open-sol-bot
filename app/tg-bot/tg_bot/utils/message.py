@@ -32,7 +32,7 @@ async def cleanup_conversation_messages(message: Message, state: FSMContext):
         raise e
 
 
-# 数据校验失败并要求用户重新输入
+# Request user to re-input after data validation failure
 async def invalid_input_and_request_reinput(text: str, last_message: Message, state: FSMContext):
     msg = await last_message.answer(text, reply_markup=ForceReply())
     await cleanup_conversation_messages(last_message, state)
@@ -57,9 +57,9 @@ async def delete_later(message: Message, delay: int = 5):
         try:
             await message.delete()
         except Exception as e:
-            # 如果删除消息失败，可能是消息已经被删除，或者消息不存在
+            # If message deletion fails, it might be because the message was already deleted or doesn't exist
             logger.warning("Error deleting message: {}", e)
 
     delete_task = asyncio.create_task(_delete_later())
-    # 添加任务完成回调以处理可能的异常
+    # Add task completion callback to handle potential exceptions
     delete_task.add_done_callback(lambda t: t.exception() if t.exception() else None)

@@ -2,16 +2,16 @@ from typing import Protocol
 
 
 class AutoUpdateCacheProtocol(Protocol):
-    """自动更新缓存协议"""
+    """Auto-update Cache Protocol"""
 
     def is_running(self) -> bool:
-        """检查缓存服务是否正在运行"""
+        """Check if cache service is running"""
         ...
 
     async def start(self):
-        """启动缓存服务"""
+        """Start cache service"""
         ...
 
     async def stop(self):
-        """停止缓存服务"""
+        """Stop cache service"""
         ...

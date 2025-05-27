@@ -14,7 +14,6 @@ from solbot_common.types.swap import SwapEvent
 from solbot_common.utils import calculate_auto_slippage
 from solbot_db.redis import RedisClient
 from solbot_services.bot_setting import BotSettingService as SettingService
-
 from tg_bot.conversations.setting.menu import setting_menu
 from tg_bot.conversations.states import SwapStates
 from tg_bot.services.user import UserService
@@ -61,7 +60,7 @@ async def start_swap(callback: CallbackQuery, state: FSMContext):
         return
 
     await callback.message.answer(
-        "输入代币合约地址，开始买卖👇🏻",
+        "Enter token contract address to start buying/selling👇🏻",
         reply_markup=ForceReply(),
     )
 
@@ -90,7 +89,7 @@ async def show_token_menu(message: Message, state: FSMContext):
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await message.answer("❌ 无法查询到该代币信息")
+        await message.answer("❌ Unable to query token information")
         return
 
     await state.update_data(setting=setting, token_info=token_info, wallet=wallet)
@@ -129,7 +128,7 @@ async def refresh_token_menu(callback: CallbackQuery, state: FSMContext):
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await callback.message.answer("❌ 无法查询到该代币信息")
+        await callback.message.answer("❌ Unable to query token information")
         return
 
     await state.update_data(setting=setting, token_info=token_info, wallet=wallet)
@@ -251,7 +250,7 @@ async def buy(callback: CallbackQuery, state: FSMContext):
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await callback.answer("❌ 无法查询到该代币信息")
+        await callback.answer("❌ Unable to query token information")
         return
 
     setting = cast(Setting, data.get("setting"))
@@ -281,7 +280,7 @@ async def buy(callback: CallbackQuery, state: FSMContext):
             priority_fee=setting.buy_priority_fee,
         )
     elif setting.auto_slippage:
-        # 需要计算出 slippage
+        # Need to calculate slippage
         slippage_bps = await calculate_auto_slippage(
             input_mint=WSOL.__str__(),
             output_mint=token_info.mint,
@@ -322,7 +321,7 @@ async def buy(callback: CallbackQuery, state: FSMContext):
     await swap_event_producer.produce(swap_event=swap_event)
     logger.debug(swap_event)
 
-    await callback.message.answer(f"🚀 {token_info.symbol} 买 {from_amount} SOL")
+    await callback.message.answer(f"🚀 {token_info.symbol} Buy {from_amount} SOL")
     logger.info(f"Buy {from_amount} SOL for {token_info.symbol}, Wallet: {wallet}")
 
 
@@ -355,7 +354,7 @@ async def start_buyx(callback: CallbackQuery, state: FSMContext):
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await callback.answer("❌ 无法查询到该代币信息")
+        await callback.answer("❌ Unable to query token information")
         return
 
     setting = cast(Setting, data.get("setting"))
@@ -381,7 +380,7 @@ async def start_buyx(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入买入金额（SOL）：",
+        "👋 Please enter buy amount (SOL):",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -404,7 +403,7 @@ async def handle_buyx(message: Message, state: FSMContext):
         ui_amount = float(message.text.strip())
     except ValueError:
         await invalid_input_and_request_reinput(
-            text="❌ 无效的买入金额，请重新输入：",
+            text="❌ Invalid buy amount, please re-enter:",
             last_message=message,
             state=state,
         )
@@ -412,7 +411,7 @@ async def handle_buyx(message: Message, state: FSMContext):
 
     if ui_amount <= 0:
         await invalid_input_and_request_reinput(
-            text="❌ 买入金额必须大于 0，请重新输入：",
+            text="❌ Buy amount must be greater than 0, please re-enter:",
             last_message=message,
             state=state,
         )
@@ -433,7 +432,7 @@ async def handle_buyx(message: Message, state: FSMContext):
 
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
-        message.answer("❌ 等待自定义购买金额超时，请重新点击买入按钮")
+        message.answer("❌ Custom buy amount timeout, please click buy button again")
         return
 
     wallet = cast(str, data.get("wallet"))
@@ -460,7 +459,7 @@ async def handle_buyx(message: Message, state: FSMContext):
             priority_fee=setting.buy_priority_fee,
         )
     elif setting.auto_slippage:
-        # 需要计算出 slippage
+        # Need to calculate slippage
         slippage_bps = await calculate_auto_slippage(
             input_mint=WSOL.__str__(),
             output_mint=token_info.mint,
@@ -499,7 +498,7 @@ async def handle_buyx(message: Message, state: FSMContext):
     await swap_event_producer.produce(swap_event=swap_event)
     logger.debug(swap_event)
 
-    await message.answer(f"🚀 {token_info.symbol} 买 {ui_amount} SOL")
+    await message.answer(f"🚀 {token_info.symbol} Buy {ui_amount} SOL")
     logger.info(f"Buy {ui_amount} SOL for {token_info.symbol}, Wallet: {wallet}")
 
     await state.set_state()
@@ -530,16 +529,16 @@ async def sell(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
 
     if not (0 < sell_pct <= 100):
-        await callback.answer("❌ 请输入正确的比例，取值范围：0~100")
+        await callback.answer("❌ Please enter a correct ratio between 0~100")
         return
 
-    # 将百分比转换为小数
+    # Convert to decimal
     sell_pct = sell_pct / 100
 
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await callback.answer("❌ 无法查询到该代币信息")
+        await callback.answer("❌ Unable to query token information")
         return
 
     setting = cast(Setting, data.get("setting"))
@@ -556,7 +555,7 @@ async def sell(callback: CallbackQuery, state: FSMContext):
 
     result = await get_token_account_balance(token_mint=token_info.mint, owner=wallet)
     if result is None:
-        await callback.answer("❌ 该账户没有持有该代币，无法卖出")
+        await callback.answer("❌ This account does not hold this token, cannot sell")
         return
 
     balance = result["amount"]
@@ -568,7 +567,7 @@ async def sell(callback: CallbackQuery, state: FSMContext):
     ui_amount = amount / 10**decimals
 
     if amount <= 0:
-        await callback.answer("❌ 卖出失败，您的余额不足")
+        await callback.answer("❌ Sell failed, insufficient balance")
         return
 
     timestamp = int(time.time())
@@ -586,7 +585,7 @@ async def sell(callback: CallbackQuery, state: FSMContext):
             priority_fee=setting.sell_priority_fee,
         )
     elif setting.auto_slippage:
-        # 需要计算出 slippage
+        # Need to calculate slippage
         slippage_bps = await calculate_auto_slippage(
             input_mint=token_info.mint,
             output_mint=WSOL.__str__(),
@@ -626,7 +625,7 @@ async def sell(callback: CallbackQuery, state: FSMContext):
     swap_event_producer = SwapEventProducer(RedisClient.get_instance())
     await swap_event_producer.produce(swap_event=swap_event)
 
-    await callback.message.answer(f"🚀 卖出 {ui_amount} 个 {token_info.symbol}")
+    await callback.message.answer(f"🚀 Sold {ui_amount} {token_info.symbol}")
     logger.info(f"Sell {ui_amount} {token_info.symbol}, Wallet: {wallet}")
 
 
@@ -659,7 +658,7 @@ async def start_sellx(callback: CallbackQuery, state: FSMContext):
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await callback.answer("❌ 无法查询到该代币信息")
+        await callback.answer("❌ Unable to query token information")
         return
 
     setting = cast(Setting, data.get("setting"))
@@ -685,7 +684,7 @@ async def start_sellx(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入卖出比例，例如：10（卖出 10% 的代币）",
+        "👋 Please enter sell ratio, e.g.: 10 (sell 10% of tokens)",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -708,7 +707,7 @@ async def handle_sellx(message: Message, state: FSMContext):
         sell_pct = float(message.text.strip())
     except ValueError:
         await invalid_input_and_request_reinput(
-            text="❌ 请输入数字：",
+            text="❌ Please enter a number between 0 and 100",
             last_message=message,
             state=state,
         )
@@ -716,7 +715,7 @@ async def handle_sellx(message: Message, state: FSMContext):
 
     if not (0 < sell_pct <= 100):
         await invalid_input_and_request_reinput(
-            text="❌ 请输入正确的比例，取值范围：0~100",
+            text="❌ Please enter a valid percentage between 0 and 100",
             last_message=message,
             state=state,
         )
@@ -728,7 +727,7 @@ async def handle_sellx(message: Message, state: FSMContext):
     token_info = await token_info_cache.get(token_mint)
     if token_info is None:
         logger.info(f"No token info found for {token_mint}")
-        await message.answer("❌ 无法查询到该代币信息")
+        await message.answer("❌ Unable to query token information")
         return
 
     setting = cast(Setting, data.get("setting"))
@@ -749,7 +748,7 @@ async def handle_sellx(message: Message, state: FSMContext):
 
     result = await get_token_account_balance(token_mint=token_info.mint, owner=wallet)
     if result is None:
-        await message.answer("❌ 该账户没有持有该代币，无法卖出")
+        await message.answer("❌ This account does not hold this token, cannot sell")
         return
 
     balance = result["amount"]
@@ -761,7 +760,7 @@ async def handle_sellx(message: Message, state: FSMContext):
     ui_amount = amount / 10**decimals
 
     if amount <= 0:
-        await message.answer("❌ 卖出失败，您的余额不足")
+        await message.answer("❌ Sell failed, insufficient balance")
         return
 
     timestamp = int(time.time())
@@ -779,7 +778,7 @@ async def handle_sellx(message: Message, state: FSMContext):
             priority_fee=setting.sell_priority_fee,
         )
     elif setting.auto_slippage:
-        # 需要计算出 slippage
+        # Need to calculate slippage
         slippage_bps = await calculate_auto_slippage(
             input_mint=token_info.mint,
             output_mint=WSOL.__str__(),
@@ -817,5 +816,5 @@ async def handle_sellx(message: Message, state: FSMContext):
     swap_event_producer = SwapEventProducer(RedisClient.get_instance())
     await swap_event_producer.produce(swap_event=swap_event)
 
-    await message.answer(f"🚀 卖出 {ui_amount} 个 {token_info.symbol}")
+    await message.answer(f"🚀 Sold {ui_amount} {token_info.symbol}")
     logger.info(f"Sell {ui_amount} {token_info.symbol}, Wallet: {wallet}")

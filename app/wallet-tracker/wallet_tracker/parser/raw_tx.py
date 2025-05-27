@@ -2,13 +2,11 @@ from functools import cache
 
 import orjson as json
 from solbot_common.constants import SWAP_PROGRAMS, TOKEN_PROGRAM_ID, WSOL
-from solbot_common.types import SolAmountChange, TokenAmountChange, TxEvent, TxType
-
-from wallet_tracker.exceptions import (
-    NotSwapTransaction,
-    UnknownTransactionType,
-    ZeroChangeAmountError,
-)
+from solbot_common.types import (SolAmountChange, TokenAmountChange, TxEvent,
+                                 TxType)
+from wallet_tracker.exceptions import (NotSwapTransaction,
+                                       UnknownTransactionType,
+                                       ZeroChangeAmountError)
 
 from .protocol import TransactionParserInterface
 
@@ -115,7 +113,7 @@ class RawTXParser(TransactionParserInterface):
         pre_balance = token_amount_change["pre_balance"] / (10 ** token_amount_change["decimals"])
         post_balance = token_amount_change["post_balance"] / (10 ** token_amount_change["decimals"])
         if change_ui_amount > 0:
-            # 加仓或开仓
+            # Add to position or open position
             if pre_balance == 0 and post_balance > 0:
                 return TxType.OPEN_POSITION
             elif post_balance > pre_balance:
@@ -148,7 +146,7 @@ class RawTXParser(TransactionParserInterface):
         #         raise TransactionError(str(self.tx_detail["meta"]["status"]["Err"]))
 
         try:
-            # 不是 swap 交易
+            # no swap trade
             pre_token_balances = self.tx_detail["meta"]["preTokenBalances"]
             post_token_balances = self.tx_detail["meta"]["postTokenBalances"]
         except KeyError:

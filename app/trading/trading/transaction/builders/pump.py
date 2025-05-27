@@ -73,7 +73,7 @@ class PumpTransactionBuilder(TransactionBuilder):
         create_instruction = None
         close_instruction = None
         if swap_direction == SwapDirection.Buy:
-            # 如果 ata 账户不存在，需要创建
+            # If ATA account doesn't exist, create it
             if not await has_ata(
                 self.rpc_client,
                 owner,

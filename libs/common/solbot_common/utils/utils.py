@@ -86,10 +86,10 @@ def get_client() -> Client:
 
 @cache
 def get_async_client() -> AsyncClient:
-    """获取 Solana RPC 客户端
+    """Get Solana RPC Client
 
     Returns:
-        Client: Solana RPC 客户端
+        Client: Solana RPC Client
     """
     from solbot_common.config import settings
 

@@ -31,7 +31,7 @@ FROM builder as final
 # Install dependencies
 COPY ./libs /app/libs
 COPY ./app/wallet-tracker/pyproject.toml /app/
-RUN pdm config python.use_venv false && \
+RUN pdm config && \
     pdm install -G local
 
 ENTRYPOINT [ "pdm", "run", "python", "-m" ]

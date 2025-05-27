@@ -2,24 +2,24 @@ from enum import Enum
 
 
 class TradingRoute(Enum):
-    """交易路由类型，表示不同的交易方式"""
+    """Trading route types, representing different trading methods"""
 
-    PUMP = "pump"  # PUMP 协议交易
-    RAYDIUM_V4 = "raydium_v4"  # Raydium V4 协议交易
-    DEX = "dex"  # DEX 交易
+    PUMP = "pump"  # PUMP protocol trading
+    RAYDIUM_V4 = "raydium_v4"  # Raydium V4 protocol trading
+    DEX = "dex"  # DEX trading
 
     @classmethod
     def from_str(cls, value: str) -> "TradingRoute":
-        """从字符串创建交易路由类型
+        """Create trading route type from string
 
         Args:
-            value (str): 交易路由类型字符串
+            value (str): Trading route type string
 
         Returns:
-            TradingRoute: 交易路由类型枚举
+            TradingRoute: Trading route type enum
 
         Raises:
-            ValueError: 如果字符串不是有效的交易路由类型
+            ValueError: If the string is not a valid trading route type
         """
         try:
             return cls(value.lower())

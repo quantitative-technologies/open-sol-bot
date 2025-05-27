@@ -5,7 +5,6 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 from solbot_common.log import logger
-
 from tg_bot.conversations.monitor.render import render
 from tg_bot.conversations.states import MonitorStates
 from tg_bot.keyboards.common import back_keyboard, confirm_keyboard
@@ -45,7 +44,7 @@ async def handle_monitor_selection(callback: CallbackQuery, state: FSMContext):
     # Fetch the monitor data
     monitor = await monitor_service.get_by_id(monitor_id)
     if monitor is None:
-        await callback.answer("❌ 监听不存在或已被删除")
+        await callback.answer("❌ Monitor does not exist or has been deleted")
         return
 
     # Store monitor ID in state
@@ -78,7 +77,7 @@ async def start_set_alias(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入钱包别名：",
+        "👋 Please enter wallet alias:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -159,7 +158,7 @@ async def delete_monitor(callback: CallbackQuery, state: FSMContext):
         original_chat_id=callback.message.chat.id,
     )
 
-    text = "⚠️ 您正在删除一个交易监听, 请您确认:"
+    text = "⚠️ You are about to delete a transaction monitor, please confirm:"
     await callback.message.reply(
         text,
         parse_mode="HTML",
@@ -201,7 +200,7 @@ async def confirm_delete_monitor(callback: CallbackQuery, state: FSMContext):
 
     # 发送删除成功的消息
     await callback.message.edit_text(
-        "✅ 您已成功删除一个交易监听",
+        "✅ You have successfully deleted a transaction monitor",
         parse_mode="HTML",
         reply_markup=back_keyboard("back_to_monitor"),
     )

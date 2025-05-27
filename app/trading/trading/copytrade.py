@@ -1,6 +1,6 @@
-"""跟单交易
+"""Copy Trading
 
-订阅 tx_event 事件，并将其转为 swap_event 事件
+Subscribe to tx_event events and convert them to swap_event events
 """
 
 import asyncio
@@ -28,7 +28,7 @@ IGNORED_MINTS = {
 
 
 class CopyTradeProcessor:
-    """跟单交易"""
+    """Copy Trading Processor"""
 
     def __init__(self):
         redis_client = RedisClient.get_instance()
@@ -45,7 +45,7 @@ class CopyTradeProcessor:
         self.notify_copytrade_producer = NotifyCopyTradeProducer(redis_client)
 
     async def _process_tx_event(self, tx_event: TxEvent):
-        """处理交易事件"""
+        """Process transaction event"""
         logger.info(f"Processing tx event: {tx_event}")
         copytrade_items = await self.copytrade_service.get_by_target_wallet(tx_event.who)
         swap_mode = "ExactIn" if tx_event.tx_direction == "buy" else "ExactOut"
@@ -62,7 +62,7 @@ class CopyTradeProcessor:
         else:
             input_mint = tx_event.mint
             output_mint = WSOL.__str__()
-            # 卖出比例
+            # Sell percentage
             if tx_event.tx_type == TxType.CLOSE_POSITION:
                 sell_pct = 1
             else:
@@ -106,7 +106,7 @@ class CopyTradeProcessor:
             return
 
         try:
-            # 根据不同的根据设置，创建不同的 swap_event
+            # Create different swap_events based on different settings
             setting = await self.setting_service.get(copytrade.chat_id, copytrade.owner)
             if setting is None:
                 raise ValueError(
@@ -120,12 +120,12 @@ class CopyTradeProcessor:
                         raise ValueError("fixed_buy_amount is None")
                     amount = int(ui_amount * SOL_DECIMAL)
                 elif copytrade.auto_follow:
-                    # TODO: 跟随买入
+                    # TODO: Auto follow buy
                     raise NotImplementedError("auto_follow")
                 else:
                     raise AssertionError("not possible")
             else:
-                # 获取当前持仓的数量
+                # Get current holding amount
                 balance = await self.holding_service.get_token_account_balance(
                     mint=tx_event.mint,
                     wallet=copytrade.owner,
@@ -134,7 +134,7 @@ class CopyTradeProcessor:
                     logger.info(f"No holdings for {tx_event.mint}, skip...")
                     return
 
-                # 自动跟买跟卖
+                # Auto follow buy and sell
                 if copytrade.auto_follow:
                     amount = int(int(balance.balance * balance.decimals) * sell_pct)
                     ui_amount = amount / balance.decimals
@@ -178,19 +178,19 @@ class CopyTradeProcessor:
                 by="copytrade",
                 tx_event=tx_event,
             )
-            # PERF: 理论上,这两个 producer 是重复的
-            # 只需要在 consumer 处, 使用不同的消费组即可
+            # PERF: Theoretically, these two producers are redundant
+            # Only need to use different consumer groups at the consumer
             await self.swap_event_producer.produce(swap_event=swap_event)
             await self.notify_copytrade_producer.produce(data=swap_event)
             logger.info(f"New Copy Trade: {swap_event}")
         except Exception as e:
             logger.exception(f"Failed to process copytrade: {e}")
-            # TODO: 通知到用户，跟单交易失败
+            # TODO: Notify user about copy trade failure
 
     async def start(self):
-        """启动跟单交易"""
+        """Start copy trading"""
         await self.tx_event_consumer.start()
 
     def stop(self):
-        """停止跟单交易"""
+        """Stop copy trading"""
         self.tx_event_consumer.stop()

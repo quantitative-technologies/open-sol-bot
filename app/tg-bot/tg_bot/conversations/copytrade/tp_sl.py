@@ -4,7 +4,6 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
-
 from tg_bot.conversations.states import CopyTradeStates
 
 router = Router()
@@ -22,4 +21,4 @@ async def toggle_take_profile_and_stop_loss(callback: CallbackQuery, state: FSMC
         logger.warning("Message is not a Message object")
         return
 
-    await callback.answer("此功能正在开发中")
+    await callback.answer("This feature is under development")

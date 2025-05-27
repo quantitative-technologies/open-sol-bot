@@ -1,40 +1,39 @@
-# 缓存预加载微服务
+# Cache preload microservices
 
-此微服务负责预加载和维护各种缓存数据，以提高主应用程序的性能。
+This microservice is responsible for preloading and maintaining various cached data to improve the performance of the main application.
 
-## 项目结构
+## Project Structure
 
 ```
 cache_preloader/
-├── __init__.py           # 包初始化文件
-├── main.py               # 主入口点
-├── core/                 # 核心组件
-│   ├── __init__.py       # 核心包初始化文件
-│   ├── protocols.py      # 协议定义
-│   └── base.py           # 基础类实现
-├── caches/               # 具体缓存实现
-│   ├── __init__.py       # 缓存包初始化文件
-│   ├── blockhash.py      # 区块哈希缓存
-│   ├── min_balance_rent.py # 最小租金余额缓存
-│   └── raydium_pool.py   # Raydium 池缓存
-└── services/             # 服务实现
-    ├── __init__.py       # 服务包初始化文件
-    └── auto_update_service.py # 自动更新服务
+├── __init__.py           # Package initialization file
+├── main.py               # Main entrance point
+├── core/                 # Core Components
+│   ├── __init__.py       # Core package initialization file
+│   ├── protocols.py      # Protocol definition
+│   └── base.py           # Basic class implementation
+├── caches/               # Specific cache implementation
+│   ├── __init__.py       # Cache package initialization file
+│   ├── blockhash.py      # Block hash cache
+│   ├── min_balance_rent.py # Minimum rental balance cache
+│   └── raydium_pool.py   # Raydium Pool cache
+└── services/             # Service implementation
+    ├── __init__.py       # Service package initialization file
+    └── auto_update_service.py # Automatic update service
 ```
+## Component Description
 
-## 组件说明
+### Core Components (core/)
 
-### 核心组件 (core/)
+- **protocols.py**: Define the protocol interface of the cache system
+- **base.py**: Implement basic cache class and provide common functions
 
-- **protocols.py**: 定义缓存系统的协议接口
-- **base.py**: 实现基础缓存类，提供通用功能
+### Cache Implementation (caches/)
 
-### 缓存实现 (caches/)
+- **blockhash.py**: Block hash cache implementation
+- **min_balance_rent.py**: Minimum rental balance cache implementation
+- **raydium_pool.py**: Raydium pool cache implementation
 
-- **blockhash.py**: 区块哈希缓存实现
-- **min_balance_rent.py**: 最小租金余额缓存实现
-- **raydium_pool.py**: Raydium 池缓存实现
+### Service Implementation (services/)
 
-### 服务实现 (services/)
-
-- **auto_update_service.py**: 自动更新缓存服务，协调和管理各种缓存的更新
+- **auto_update_service.py**: Automatically update cache services, coordinate and manage updates of various caches

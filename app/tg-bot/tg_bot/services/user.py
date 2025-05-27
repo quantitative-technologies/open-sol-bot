@@ -121,13 +121,13 @@ class UserService:
     async def get_chat_id_by_pubkey(
         self, pubkey: str, *, session: AsyncSession = NEW_ASYNC_SESSION
     ) -> list[int]:
-        """根据钱包地址获取 chat_id
+        """Get chat_id by wallet address
 
         Args:
-            pubkey(str): 钱包地址
+            pubkey(str): Wallet address
 
         Returns:
-            list[int] 该钱包所属的 user id
+            list[int]: List of user IDs associated with this wallet
         """
         statement = select(UserModel).where(UserModel.pubkey == pubkey)
         users = (await session.execute(statement)).scalars().all()

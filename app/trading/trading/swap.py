@@ -7,5 +7,5 @@ class SwapDirection(str, Enum):
 
 
 class SwapInType(str, Enum):
-    Qty = "qty"  # 按数量交易
-    Pct = "pct"  # 按百分比交易
+    Qty = "qty"  # Trade by quantity
+    Pct = "pct"  # Trade by percentage

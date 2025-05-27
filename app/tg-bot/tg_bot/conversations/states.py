@@ -8,43 +8,43 @@ class StartStates(StatesGroup):
 class CopyTradeStates(StatesGroup):
     """Copy trade states"""
 
-    MENU = State()  # 主菜单状态
+    MENU = State()  # Main menu state
 
-    # 创建跟单相关状态
-    CREATING = State()  # 创建跟单状态
-    CREATE_WAITING_FOR_ADDRESS = State()  # 创建时等待输入钱包地址
-    CREATE_WAITING_FOR_ALIAS = State()  # 创建时等待输入别名
-    CREATE_WAITING_FOR_FIXED_BUY_AMOUNT = State()  # 创建时等待输入固定买入数量
-    CREATE_WAITING_FOR_PRIORITY = State()  # 创建时等待输入优先费用
-    CREATE_WAITING_FOR_CUSTOM_SLIPPAGE = State()  # 创建时等待输入自定义滑点
+    # Copy trade creation states
+    CREATING = State()  # Creating copy trade state
+    CREATE_WAITING_FOR_ADDRESS = State()  # Waiting for wallet address input during creation
+    CREATE_WAITING_FOR_ALIAS = State()  # Waiting for alias input during creation
+    CREATE_WAITING_FOR_FIXED_BUY_AMOUNT = State()  # Waiting for fixed buy amount input during creation
+    CREATE_WAITING_FOR_PRIORITY = State()  # Waiting for priority fee input during creation
+    CREATE_WAITING_FOR_CUSTOM_SLIPPAGE = State()  # Waiting for custom slippage input during creation
 
-    # 编辑跟单相关状态
-    EDITING = State()  # 编辑跟单状态
-    EDIT_WAITING_FOR_ADDRESS = State()  # 编辑时等待输入钱包地址
-    EDIT_WAITING_FOR_ALIAS = State()  # 编辑时等待输入别名
-    EDIT_WAITING_FOR_FIXED_BUY_AMOUNT = State()  # 编辑时等待输入固定买入数量
-    EDIT_WAITING_FOR_PRIORITY = State()  # 编辑时等待输入优先费用
-    EDIT_WAITING_FOR_CUSTOM_SLIPPAGE = State()  # 编辑时等待输入自定义滑点
+    # Copy trade editing states
+    EDITING = State()  # Editing copy trade state
+    EDIT_WAITING_FOR_ADDRESS = State()  # Waiting for wallet address input during editing
+    EDIT_WAITING_FOR_ALIAS = State()  # Waiting for alias input during editing
+    EDIT_WAITING_FOR_FIXED_BUY_AMOUNT = State()  # Waiting for fixed buy amount input during editing
+    EDIT_WAITING_FOR_PRIORITY = State()  # Waiting for priority fee input during editing
+    EDIT_WAITING_FOR_CUSTOM_SLIPPAGE = State()  # Waiting for custom slippage input during editing
 
 
 class MonitorStates(StatesGroup):
     MENU = State()
-    CREATING = State()  # 创建跟单状态
-    CREATE_WAITING_FOR_ADDRESS = State()  # 创建时等待输入钱包地址
-    CREATE_WAITING_FOR_ALIAS = State()  # 创建时等待输入别名
+    CREATING = State()  # Creating monitor state
+    CREATE_WAITING_FOR_ADDRESS = State()  # Waiting for wallet address input during creation
+    CREATE_WAITING_FOR_ALIAS = State()  # Waiting for alias input during creation
 
-    EDITING = State()  # 编辑跟单状态
-    EDIT_WAITING_FOR_ALIAS = State()  # 编辑时等待输入别名
+    EDITING = State()  # Editing monitor state
+    EDIT_WAITING_FOR_ALIAS = State()  # Waiting for alias input during editing
 
 
 class SettingStates(StatesGroup):
     EDIT_QUICK_SLIPPAGE = State()
-    WAITING_FOR_QUICK_SLIPPAGE = State()  # 等待输入快速滑点
-    WAITING_FOR_SANDWICH_SLIPPAGE = State()  # 等待输入防夹滑点
-    WAITING_FOR_BUY_PRIORITY_FEE = State()  # 等待输入买入优先费
-    WAITING_FOR_SELL_PRIORITY_FEE = State()  # 等待输入卖出优先费
-    WAITING_FOR_CUSTOM_BUY_AMOUNT = State()  # 等待输入自定义买入数量
-    WAITING_FOR_CUSTOM_SELL_PCT = State()  # 等待输入自定义卖出
+    WAITING_FOR_QUICK_SLIPPAGE = State()  # Waiting for quick slippage input
+    WAITING_FOR_SANDWICH_SLIPPAGE = State()  # Waiting for anti-sandwich slippage input
+    WAITING_FOR_BUY_PRIORITY_FEE = State()  # Waiting for buy priority fee input
+    WAITING_FOR_SELL_PRIORITY_FEE = State()  # Waiting for sell priority fee input
+    WAITING_FOR_CUSTOM_BUY_AMOUNT = State()  # Waiting for custom buy amount input
+    WAITING_FOR_CUSTOM_SELL_PCT = State()  # Waiting for custom sell percentage input
 
 
 class SwapStates(StatesGroup):

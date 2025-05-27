@@ -1,7 +1,7 @@
 """
-缓存预加载微服务
+Cache Preloading Microservice
 
-此微服务负责预加载和维护各种缓存数据，以提高主应用程序的性能。
+This microservice is responsible for preloading and maintaining various cached data to improve the performance of the main application.
 """
 
 __version__ = "0.1.0"
