@@ -22,19 +22,20 @@ class LaunchCache:
 
     @cached(ttl=None, noself=True)
     async def is_pump_token_launched(self, mint: str | Pubkey) -> bool:
-        """检查 pump 代币是否已被发射。
+        """Examine if a Pump.fun token has been launched.
 
-        通过检查代币的 virtual_sol_reserves 是否为 0 来判断。
-        如果为 0，说明代币已经在 Raydium 上发射。
+        NO: 
+        Check if the token's virtual_sol_reserves is 0 to determine if it has been launched.
+        If it is 0, it means the token has been launched on Raydium.
 
         Args:
             mint (str): 代币的 mint 地址
 
         Returns:
-            bool: 如果代币已发射返回 True，否则返回 False
+            bool: Return if the token has been fired True, otherwise return False
 
         Raises:
-            BondingCurveNotFound: 如果找不到对应的 bonding curve 账户
+            BondingCurveNotFound: If the corresponding one is not found bonding curve Account
         """
         result = await get_bonding_curve_account(
             self.client,
@@ -44,4 +45,5 @@ class LaunchCache:
         if result is None:
             return False
         _, _, bonding_curve_account = result
-        return bonding_curve_account.virtual_sol_reserves == 0
+        #return bonding_curve_account.virtual_sol_reserves == 0
+        return bonding_curve_account.complete
