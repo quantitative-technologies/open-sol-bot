@@ -39,6 +39,22 @@ def test_get_associated_bonding_curve():
         "token_total_supply": 1000000000000000,
         "complete": True
     }),
+    ("43PLsLePQVtKWm5ba9KTSHfxKLYo8mfno5CPspWApump", {
+        "virtual_token_reserves": 1072207014479888,
+        "virtual_sol_reserves": 30022187624,
+        "real_token_reserves": 792307014479888,
+        "real_sol_reserves": 22187624,
+        "token_total_supply": 1000000000000000,
+        "complete": False
+    }),
+    ("F2jRpD9QzV17Mu7r9itGg1hy9wssrYPXGnD81x3Xpump", {
+        "virtual_token_reserves": 0,
+        "virtual_sol_reserves": 0,
+        "real_token_reserves": 0,
+        "real_sol_reserves": 0,
+        "token_total_supply": 1000000000000000,
+        "complete": True
+    })
 ])
 async def test_get_bonding_curve_account(mint_address, expected_values):
     client = get_async_client()

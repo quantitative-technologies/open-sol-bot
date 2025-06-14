@@ -6,7 +6,8 @@ from solbot_common.constants import (ASSOCIATED_TOKEN_PROGRAM, PUMP_BUY_METHOD,
                                      SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID, WSOL)
 from solbot_common.IDL.pumpfun import PumpFunInterface
 from solbot_common.log import logger
-from solbot_common.utils.utils import (get_bonding_curve_account, get_bonding_curve_pda_creator_vault,
+from solbot_common.utils.utils import (get_bonding_curve_account,
+                                       get_bonding_curve_pda_creator_vault,
                                        get_global_account)
 from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
@@ -21,6 +22,8 @@ from trading.utils import (has_ata, max_amount_with_slippage,
                            min_amount_with_slippage)
 
 from .base import TransactionBuilder
+
+MAX_BONDING_CURVE_ATTEMPTS = 3
 
 
 # Reference: https://github.com/wisarmy/raytx/blob/main/src/pump.rs
@@ -56,7 +59,15 @@ class PumpTransactionBuilder(TransactionBuilder):
             raise ValueError("swap_direction must be buy or sell")
 
         pump_program = PUMP_FUN_PROGRAM
-        result = await get_bonding_curve_account(self.rpc_client, mint, pump_program)
+        attempt_num = 0
+        while True:
+            result = await get_bonding_curve_account(self.rpc_client, mint, pump_program)
+            if result is not None:
+                break
+            logger.warning("Failed attempt {attempt_num} to obtain bonding curve")
+            attempt_num += 1
+            if attempt_num == MAX_BONDING_CURVE_ATTEMPTS:
+                break
         if result is None:
             raise BondingCurveNotFound("bonding curve account not found")
         bonding_curve, associated_bonding_curve, bonding_curve_account = result
