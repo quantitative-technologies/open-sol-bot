@@ -11,7 +11,6 @@ from solbot_common.types.swap import SwapEvent, SwapResult
 from solbot_common.utils.utils import get_async_client
 from solbot_db.redis import RedisClient
 from solders.signature import Signature  # type: ignore
-
 from trading.copytrade import CopyTradeProcessor
 from trading.executor import TradingExecutor
 from trading.settlement import SwapSettlementProcessor
@@ -145,6 +144,7 @@ class Trading:
 
 
 if __name__ == "__main__":
+    logger.debug("Starting Trading service")
     pre_start()
     trading = Trading()
     try:

@@ -32,3 +32,6 @@ SWAP_PROGRAMS = [
     "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",  # Pump
     "cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG",  # MMeteora DAMM v2
 ]
+
+MAX_BONDING_CURVE_ATTEMPTS = 3
+BONDING_CURVE_RETRY_INTERVAL = 0.01  # seconds

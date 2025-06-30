@@ -1,8 +1,10 @@
+
 from solbot_cache import AccountAmountCache, MintAccountCache
-from solbot_common.constants import (ASSOCIATED_TOKEN_PROGRAM, PUMP_BUY_METHOD,
-                                     PUMP_FUN_ACCOUNT, PUMP_FUN_PROGRAM,
-                                     PUMP_GLOBAL_ACCOUNT, PUMP_SELL_METHOD,
-                                     RENT_PROGRAM_ID, SOL_DECIMAL,
+from solbot_common.constants import (BONDING_CURVE_RETRY_INTERVAL,
+                                     MAX_BONDING_CURVE_ATTEMPTS,
+                                     PUMP_BUY_METHOD, PUMP_FUN_ACCOUNT,
+                                     PUMP_FUN_PROGRAM, PUMP_GLOBAL_ACCOUNT,
+                                     PUMP_SELL_METHOD, SOL_DECIMAL,
                                      SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID, WSOL)
 from solbot_common.IDL.pumpfun import PumpFunInterface
 from solbot_common.log import logger
@@ -15,15 +17,12 @@ from solders.transaction import VersionedTransaction  # type: ignore
 from spl.token.instructions import (CloseAccountParams, close_account,
                                     create_associated_token_account,
                                     get_associated_token_address)
-from trading.exceptions import BondingCurveNotFound
 from trading.swap import SwapDirection, SwapInType
 from trading.tx import build_transaction
 from trading.utils import (has_ata, max_amount_with_slippage,
                            min_amount_with_slippage)
 
 from .base import TransactionBuilder
-
-MAX_BONDING_CURVE_ATTEMPTS = 3
 
 
 # Reference: https://github.com/wisarmy/raytx/blob/main/src/pump.rs
@@ -59,17 +58,7 @@ class PumpTransactionBuilder(TransactionBuilder):
             raise ValueError("swap_direction must be buy or sell")
 
         pump_program = PUMP_FUN_PROGRAM
-        attempt_num = 0
-        while True:
-            result = await get_bonding_curve_account(self.rpc_client, mint, pump_program)
-            if result is not None:
-                break
-            logger.warning("Failed attempt {attempt_num} to obtain bonding curve")
-            attempt_num += 1
-            if attempt_num == MAX_BONDING_CURVE_ATTEMPTS:
-                break
-        if result is None:
-            raise BondingCurveNotFound("bonding curve account not found")
+        result = await get_bonding_curve_account(self.rpc_client, mint, pump_program, num_retries=MAX_BONDING_CURVE_ATTEMPTS, retry_delay=BONDING_CURVE_RETRY_INTERVAL)
         bonding_curve, associated_bonding_curve, bonding_curve_account = result
         bonding_curve_pda,bump = get_bonding_curve_pda_creator_vault(bonding_curve_account.creator, pump_program)
         global_account = await get_global_account(self.rpc_client, pump_program)
@@ -84,7 +73,7 @@ class PumpTransactionBuilder(TransactionBuilder):
         create_instruction = None
         close_instruction = None
         if swap_direction == SwapDirection.Buy:
-            # 如果 ata 账户不存在，需要创建
+            # if ata The account does not exist, needs to be created
             if not await has_ata(
                 self.rpc_client,
                 owner,

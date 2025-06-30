@@ -1,3 +1,4 @@
+import asyncio
 from decimal import Decimal
 from functools import cache
 
@@ -5,6 +6,9 @@ from jupiter_python_sdk.jupiter import Jupiter
 from loguru import logger
 from solana.rpc.api import Client
 from solana.rpc.async_api import AsyncClient
+from solbot_common.constants import (BONDING_CURVE_RETRY_INTERVAL,
+                                     MAX_BONDING_CURVE_ATTEMPTS)
+from solbot_common.exceptions import BondingCurveNotFound
 from solbot_common.layouts.bonding_curve_account import BondingCurveAccount
 from solbot_common.layouts.global_account import GlobalAccount
 from solbot_common.layouts.mint_account import MintAccount
@@ -19,18 +23,19 @@ from spl.token.instructions import get_associated_token_address
 def get_bonding_curve_pda(mint: Pubkey, program: Pubkey) -> tuple[Pubkey, int]:
     """
     Derives the associated bonding curve Program Derived Address (PDA) for a given mint.
-    
+
     Args:
         mint: The token mint address
         program_id: The program ID for the bonding curve
-        
+
     Returns:
         Tuple of (bonding curve address, bump seed)
     """
 
     return Pubkey.find_program_address([b"bonding-curve", bytes(mint)], program)
 
-def get_bonding_curve_pda_creator_vault(mint: Pubkey, program: Pubkey) :
+
+def get_bonding_curve_pda_creator_vault(mint: Pubkey, program: Pubkey):
     """
     Derives the associated bonding curve Program Derived Address (PDA) for a given mint.
 
@@ -45,20 +50,53 @@ def get_bonding_curve_pda_creator_vault(mint: Pubkey, program: Pubkey) :
     # return Pubkey.find_program_address([b"bonding-curve", bytes(mint)], program)
     return Pubkey.find_program_address([b"creator-vault", bytes(mint)], program)
 
+
 async def get_bonding_curve_account(
-    client: AsyncClient, mint: Pubkey, program: Pubkey
-) -> tuple[Pubkey, Pubkey, BondingCurveAccount] | None:
+    client: AsyncClient,
+    mint: Pubkey,
+    program: Pubkey,
+    num_retries: int = MAX_BONDING_CURVE_ATTEMPTS,
+    retry_delay: float = BONDING_CURVE_RETRY_INTERVAL,
+) -> tuple[Pubkey, Pubkey, BondingCurveAccount]:
+    """
+    Get the bonding curve account for a given mint
+
+    Args:
+        client: The Solana RPC client
+        mint: The token mint address
+        program: The program ID for the bonding curve
+        num_retries: The number of retries to get the bonding curve account,
+            if the account is not found, it will retry num_retries times
+        retry_delay: The delay between retries in seconds
+
+    Returns:
+        Tuple of (bonding curve PDA, associated token address, bonding curve account)
+    """
+    logger.debug(f"Getting bonding curve account for mint {mint} and program {program}")
     bonding_curve, bump = get_bonding_curve_pda(mint, program)
     associated_bonding_curve = get_associated_token_address(bonding_curve, mint)
 
-    account_info = await client.get_account_info_json_parsed(bonding_curve)
-    if account_info is None:
-        return None
-    value = account_info.value
+    value = None
+    while num_retries > 0:
+        account_info = await client.get_account_info_json_parsed(bonding_curve)
+        if account_info is None:
+            logger.debug("RPC call to get bonding curve account failed.")
+            num_retries -= 1
+            await asyncio.sleep(retry_delay)
+            continue
+        value = account_info.value
+        if value is None:
+            logger.debug("Bonding curve account has no info.")
+            num_retries -= 1
+            await asyncio.sleep(retry_delay)
+            continue
+        break
+
     if value is None:
-        return None
+        raise BondingCurveNotFound(f"Bonding curve account not found for mint {mint}")
     bonding_curve_account = BondingCurveAccount(bytes(value.data))
     return bonding_curve, associated_bonding_curve, bonding_curve_account
+
 
 async def get_global_account(client: AsyncClient, program: Pubkey) -> GlobalAccount | None:
     from solbot_cache.account import GlobalAccountCache

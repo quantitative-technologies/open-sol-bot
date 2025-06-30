@@ -49,21 +49,21 @@ class TradingExecutor:
         _, token_address = self._get_direction_address(swap_event)
 
         try:
-            is_pump_token_launched = await self._launch_cache.is_pump_token_launched(token_address)
-            logger.info(f"Pump token {token_address} is launched: {is_pump_token_launched}")
+            is_pump_token_graduated = await self._launch_cache.is_pump_token_graduated(token_address)
+            logger.info(f"Pump token {token_address} is graduated: {is_pump_token_graduated}")
             if program_id == PUMP_FUN_PROGRAM_ID or (
-                token_address.endswith("pump") and not is_pump_token_launched
+                token_address.endswith("pump") and not is_pump_token_graduated
             ):
                 should_use_pump = True
                 logger.info(
-                    f"Token {token_address} has not launched, using Pump protocol to trade"
+                    f"Token {token_address} has not graduated, using Pump protocol to trade"
                 )
             else:
                 # Check if the token is launched on Raydium
                 pool_data = await get_preferred_pool(token_address)
                 if pool_data is not None:
                     logger.info(
-                        f"Token {token_address} is launched on Raydium, using Raydium protocol to trade"
+                        f"Token {token_address} is trading on Raydium, using Raydium protocol to trade"
                     )
                     # Program ID should be Raydium V4 when the token is launched on Raydium
                     if program_id != RAY_V4_PROGRAM_ID:
@@ -72,7 +72,7 @@ class TradingExecutor:
                     # 如果 token 在 Raydium 上启动，则使用 Raydium 协议进行交易
                     #swap_event.program_id = RAY_V4_PROGRAM_ID
         except Exception as e:
-            logger.exception(f"Failed to check launch status, cause: {e}")
+            logger.error(f"Failed graduation status check on PUMP, cause: {e}")
 
         if should_use_pump:
             logger.info("Program ID is PUMP")
@@ -116,7 +116,7 @@ class TradingExecutor:
             program_id = swap_event.program_id
 
             try:
-                is_pump_token_launched = await self._launch_cache.is_pump_token_launched(token_address)
+                is_pump_token_launched = await self._launch_cache.is_pump_token_graduated(token_address)
                 if program_id == PUMP_FUN_PROGRAM_ID or (
                     token_address.endswith("pump") and not is_pump_token_launched
                 ):
