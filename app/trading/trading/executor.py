@@ -10,6 +10,7 @@ from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from solders.keypair import Keypair  # type: ignore
 from solders.signature import Signature  # type: ignore
 from sqlmodel import select
+
 from trading.swap import SwapDirection, SwapInType
 from trading.transaction import TradingRoute, TradingService
 
@@ -49,14 +50,14 @@ class TradingExecutor:
         _, token_address = self._get_direction_address(swap_event)
 
         try:
-            is_pump_token_launched = await self._launch_cache.is_pump_token_launched(token_address)
-            logger.info(f"Pump token {token_address} is launched: {is_pump_token_launched}")
+            is_pump_token_graduated = await self._launch_cache.is_pump_token_graduated(token_address)
+            logger.info(f"Pump token {token_address} is graduated: {is_pump_token_graduated}")
             if program_id == PUMP_FUN_PROGRAM_ID or (
-                token_address.endswith("pump") and not is_pump_token_launched
+                token_address.endswith("pump") and not is_pump_token_graduated
             ):
                 should_use_pump = True
                 logger.info(
-                    f"Token {token_address} has not launched, using Pump protocol to trade"
+                    f"Token {token_address} has not graduated, using Pump protocol to trade"
                 )
             else:
                 # Check if the token is launched on Raydium
@@ -109,44 +110,8 @@ class TradingExecutor:
         sig = None
         keypair = await self.__get_keypair(swap_event.user_pubkey)
         swap_in_type = SwapInType(swap_event.swap_in_type)
-
-        if False:
-            # 检查是否需要使用 Pump 协议进行交易
-            should_use_pump = False
-            program_id = swap_event.program_id
-
-            try:
-                is_pump_token_launched = await self._launch_cache.is_pump_token_launched(token_address)
-                if program_id == PUMP_FUN_PROGRAM_ID or (
-                    token_address.endswith("pump") and not is_pump_token_launched
-                ):
-                    should_use_pump = True
-                    logger.info(
-                        f"Token {token_address} is not launched on Raydium, using Pump protocol to trade"
-                    )
-                else:
-                    logger.info(
-                        f"Token {token_address} is launched on Raydium, using Raydium protocol to trade"
-                    )
-                    # 如果 token 在 Raydium 上启动，则使用 Raydium 协议进行交易
-                    swap_event.program_id = RAY_V4_PROGRAM_ID
-            except Exception as e:
-                logger.exception(f"Failed to check launch status, cause: {e}")
-
-            if should_use_pump:
-                logger.info("Program ID is PUMP")
-                trade_route = TradingRoute.PUMP
-            # NOTE: 测试下来不是很理想，暂时使用备选方案
-            elif swap_event.program_id == RAY_V4_PROGRAM_ID:
-                logger.info("Program ID is RayV4")
-                trade_route = TradingRoute.RAYDIUM_V4
-            elif program_id is None:
-                logger.warning("Program ID is Unknown, So We use thrid party to trade")
-                trade_route = TradingRoute.DEX
-            else:
-                raise ValueError(f"Program ID is not supported, {swap_event.program_id}")
-        else:
-            trade_route = await self.find_route(swap_event)
+           
+        trade_route = await self.find_route(swap_event)
 
         sig = await self._trading_service.use_route(trade_route).swap(
             keypair,

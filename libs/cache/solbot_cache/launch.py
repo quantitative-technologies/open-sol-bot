@@ -1,6 +1,5 @@
 from solbot_common.constants import PUMP_FUN_PROGRAM
-from solbot_common.utils.utils import (get_async_client,
-                                       get_bonding_curve_account)
+from solbot_common.utils.utils import get_async_client, get_bonding_curve_account
 from solders.pubkey import Pubkey  # type: ignore
 
 from .cached import cached
@@ -21,7 +20,7 @@ class LaunchCache:
         return "LaunchCache()"
 
     @cached(ttl=None, noself=True)
-    async def is_pump_token_launched(self, mint: str | Pubkey) -> bool:
+    async def is_pump_token_graduated(self, mint: str | Pubkey) -> bool:
         """Examine if a Pump.fun token has been launched.
 
         通过检查代币的 virtual_sol_reserves 是否为 0 来判断。
