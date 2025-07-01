@@ -64,7 +64,7 @@ class TradingExecutor:
                 pool_data = await get_preferred_pool(token_address)
                 if pool_data is not None:
                     logger.info(
-                        f"Token {token_address} is launched on Raydium, using Raydium protocol to trade"
+                        f"Token {token_address} is trading on Raydium, using Raydium protocol to trade"
                     )
                     # Program ID should be Raydium V4 when the token is launched on Raydium
                     if program_id != RAY_V4_PROGRAM_ID:
@@ -73,7 +73,7 @@ class TradingExecutor:
                     # 如果 token 在 Raydium 上启动，则使用 Raydium 协议进行交易
                     #swap_event.program_id = RAY_V4_PROGRAM_ID
         except Exception as e:
-            logger.exception(f"Failed to check launch status, cause: {e}")
+            logger.error(f"Failed graduation status check on PUMP, cause: {e}")
 
         if should_use_pump:
             logger.info("Program ID is PUMP")
