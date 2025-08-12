@@ -92,6 +92,8 @@ async def get_bonding_curve_account(
                 break
             await asyncio.sleep(retry_delay)
             continue
+        # Success
+        break
 
     if value is None:
         raise BondingCurveNotFound(f"Bonding curve account not found for mint {mint}")

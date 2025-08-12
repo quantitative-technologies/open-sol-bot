@@ -1,11 +1,13 @@
 import pytest
 from solbot_common.constants import PUMP_FUN_PROGRAM
 from solbot_common.utils import validate_transaction
-from solbot_common.utils.utils import (get_associated_bonding_curve,
-                                       get_async_client,
-                                       get_bonding_curve_account,
-                                       get_bonding_curve_pda,
-                                       get_global_account)
+from solbot_common.utils.utils import (
+    get_associated_bonding_curve,
+    get_async_client,
+    get_bonding_curve_account,
+    get_bonding_curve_pda,
+    get_global_account,
+)
 from solders.pubkey import Pubkey
 
 
@@ -81,6 +83,7 @@ async def test_get_bonding_curve_account(mint_address, expected_values):
     assert account.token_total_supply == expected_values["token_total_supply"]
     assert account.complete == expected_values["complete"]
     
+    
 @pytest.mark.asyncio
 async def test_get_bonding_curve_account_already_launched():
     client = get_async_client()
@@ -104,6 +107,7 @@ async def test_get_bonding_curve_account_already_launched():
     # assert account.token_total_supply == 1000000000000000
     # assert account.complete
 
+
 @pytest.mark.asyncio
 async def test_get_global_account():
     client = get_async_client()
@@ -117,6 +121,7 @@ async def test_get_global_account():
     assert result.initial_real_token_reserves == 793100000000000
     assert result.token_total_supply == 1000000000000000
     assert result.fee_basis_points == 100
+
 
 @pytest.mark.asyncio
 async def test_validate_transaction():
