@@ -56,7 +56,7 @@ def test_get_associated_bonding_curve():
         "real_sol_reserves": 0,
         "token_total_supply": 1000000000000000,
         "complete": True
-    }),
+    }), # don't understand whats going on with this one?
     ("7eLVcLZRg7ZuE8SXWqd4KE1zJ2XanWz9iR9YTKPrpump", {
         "virtual_token_reserves": 0,
         "virtual_sol_reserves": 0,
@@ -65,6 +65,22 @@ def test_get_associated_bonding_curve():
         "token_total_supply": 1000000000000000,
         "complete": True
     }),
+    ("wHwrwk1UjwGuVzHghotdejfXZACzfjEiNWdSstLpump", {
+        "virtual_token_reserves": 0,
+        "virtual_sol_reserves": 0,
+        "real_token_reserves": 0,
+        "real_sol_reserves": 0,
+        "token_total_supply": 1000000000000000,
+        "complete": True
+    }),
+    ("G9EQcZGf7bqWQuF3u8g7yy3PmNoFS2AQepbH13jZpump", {
+        "virtual_token_reserves": 0,
+        "virtual_sol_reserves": 0,
+        "real_token_reserves": 0,
+        "real_sol_reserves": 0,
+        "token_total_supply": 1000000000000000,
+        "complete": True
+    })
 ])
 async def test_get_bonding_curve_account(mint_address, expected_values):
     client = get_async_client()

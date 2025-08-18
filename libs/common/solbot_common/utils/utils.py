@@ -84,6 +84,7 @@ async def get_bonding_curve_account(
             if (num_retries := num_retries - 1) == 0:
                 break
             await asyncio.sleep(retry_delay)
+            logger.warning(f"Retrying to get bonding curve account for mint {mint} and program {program}")
             continue
         value = account_info.value
         if value is None:
@@ -91,6 +92,7 @@ async def get_bonding_curve_account(
             if (num_retries := num_retries - 1) == 0:
                 break
             await asyncio.sleep(retry_delay)
+            logger.warning(f"Retrying to get bonding curve account for mint {mint} and program {program}")
             continue
         # Success
         break

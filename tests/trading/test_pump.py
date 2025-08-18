@@ -1,33 +1,21 @@
 import os
-from unittest.mock import AsyncMock, patch
 
 import pytest
-from solana.rpc.async_api import AsyncClient
-#from trading.utils import get_async_client
 from solbot_common.utils import get_async_client
 from solders.keypair import Keypair
-from solders.pubkey import Pubkey
 from solders.transaction import VersionedTransaction
 
 from app.trading.trading.swap import SwapDirection
-from app.trading.trading.transaction.builders.pump import \
-    PumpTransactionBuilder
+from app.trading.trading.transaction.builders.pump import PumpTransactionBuilder
 
 #from trading.swap import SwapDirection
 
 #from trading.swap_protocols.pump import Pump
 
 @pytest.fixture
-def mock_rpc_client():
-    """Mock RPC client for testing"""
-    client = AsyncMock(spec=AsyncClient)
-    return client
-
-@pytest.fixture
-def pump_builder():
-    client = get_async_client()
-    """Create a PumpTransactionBuilder instance with mocked client"""
-    return PumpTransactionBuilder(client)
+def pump_builder(rpc_client):
+    """Create a PumpTransactionBuilder instance with shared client"""
+    return PumpTransactionBuilder(rpc_client)
 
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Pump class seems to be removed")

@@ -1,6 +1,6 @@
 from solbot_common.constants import PUMP_FUN_PROGRAM
-from solbot_common.utils.utils import (get_async_client,
-                                       get_bonding_curve_account)
+from solbot_common.log import logger
+from solbot_common.utils.utils import get_async_client, get_bonding_curve_account
 from solders.pubkey import Pubkey
 
 from .cached import cached
@@ -41,4 +41,5 @@ class LaunchCache:
             PUMP_FUN_PROGRAM,
         )
         _, _, bonding_curve_account = result
+        logger.debug(f"Bonding curve account: {bonding_curve_account}")
         return bonding_curve_account.complete
