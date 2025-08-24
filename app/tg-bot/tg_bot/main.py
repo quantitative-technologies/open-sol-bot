@@ -10,21 +10,18 @@ from loguru import logger
 from solbot_common.config import settings
 from solbot_common.prestart import pre_start
 from solbot_db.redis import RedisClient
-
-from tg_bot.conversations import admin, asset, copytrade, home, monitor, setting, swap, wallet
+from tg_bot.conversations import (admin, asset, copytrade, home, monitor,
+                                  setting, swap, wallet)
 from tg_bot.conversations.router import router
-from tg_bot.conversations.states import CopyTradeStates, MonitorStates, WalletStates
-from tg_bot.middlewares import (
-    AuthorizationMiddleware,
-    DebugMiddleware,
-    ErrorHandlerMiddleware,
-    InitializeMiddleware,
-)
+from tg_bot.conversations.states import (CopyTradeStates, MonitorStates,
+                                         WalletStates)
+from tg_bot.middlewares import (AuthorizationMiddleware, DebugMiddleware,
+                                ErrorHandlerMiddleware, InitializeMiddleware)
 from tg_bot.notify.notify import Notify
 
 
 async def get_chat_id(message):
-    await message.answer(f"您的 chat id 是: <code>{message.chat.id}</code>")
+    await message.answer(f"Your chat id is: <code>{message.chat.id}</code>")
 
 
 async def start_bot():
@@ -84,7 +81,7 @@ async def start_bot():
     logger.info("Starting bot...")
     await dp.start_polling(bot)
 
-    # 清理数据库连接
+    # Clean up database connections
     # await cleanup_session_factory()
     # 关闭 bot
     await bot.session.close()

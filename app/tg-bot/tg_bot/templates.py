@@ -10,90 +10,89 @@ from solbot_common.types.bot_setting import BotSetting as Setting
 from solbot_common.types.holding import HoldingToken
 from solbot_common.utils.utils import keypair_to_private_key
 from solders.keypair import Keypair  # type: ignore
-
 from tg_bot.models.monitor import Monitor
 from tg_bot.utils.bot import get_bot_name
 
 if TYPE_CHECKING:
     from tg_bot.notify.smart_swap import SwapMessage
 
-# 创建 Jinja2 环境
+# Create Jinja2 environment
 env = Environment(loader=BaseLoader())
 
-# 定义模板
+# Define templates
 START_TEMPLATE = env.from_string(
     """Hi {{ mention }}! 👋
-💳 钱包地址:
+💳 Wallet address:
 <code>{{ wallet_address }}</code>
-(点击复制)
+(Click to copy)
 
-💰 钱包余额: {{ balance }} SOL
+💰 Wallet balance: {{ balance }} SOL
 {%- if expiration_datetime %}
-⌚ 到期时间: {{ expiration_datetime }}
+⌚ Expiry time: {{ expiration_datetime }}
 {%- endif %}
 """
 )
 
-# 首次使用模板（未注册）
+# First use template (unregistered)
 FIRST_USE_TEMPLATE = env.from_string(
     """Hi {{ mention }}! 👋
 
-📝 欢迎使用 Solana Trading Bot!
+📝 Welcome to Solana Trading Bot!
 
-💳 钱包地址:
+💳 Wallet address:
 <code>{{ wallet_address }}</code>
-(点击复制)
+(Click to copy)
 
 {%- if expiration_datetime %}
-⌚ 到期时间: {{ expiration_datetime }}
+⌚ Expiry time: {{ expiration_datetime }}
 {%- endif %}
-Tips: 由于您是第一次使用 bot，已为您生成一个新钱包。
-您可以在任何时候使用 /wallet 命令更改钱包地址或导出私钥。
+Tips: Since this is your first time using the bot, a new wallet has been generated for you.
+You can use the /wallet command at any time to change your wallet address or export your private key.
 """
 )
 
 COPYTRADE_TEMPLATE = env.from_string(
-    """复制交易设置:
-目标钱包: <code>{{ target_wallet }}</code>
-复制比例: {{ copy_ratio }}%
-最大金额: {{ max_amount }} SOL
+    """Copy Trade Settings:
+Target wallet: <code>{{ target_wallet }}</code>
+Copy ratio: {{ copy_ratio }}%
+Maximum amount: {{ max_amount }} SOL
 """
 )
 
-COPYTRADE_MENU_TEMPLATE = env.from_string("""当前有 {{ total }} 个跟单，{{ active_cnt }} 个活跃""")
+COPYTRADE_MENU_TEMPLATE = env.from_string("""Currently {{ total }} copy trades, {{ active_cnt }} active""")
 
-CREATE_COPYTRADE_MESSAGE = "📝 创建跟单"
-EDIT_COPYTRADE_MESSAGE = "📝 编辑跟单"
+CREATE_COPYTRADE_MESSAGE = "📝 Create Copy Trade"
+EDIT_COPYTRADE_MESSAGE = "📝 Edit Copy Trade"
 
 # MONITOR
-MONITOR_MENU_MESSAGE = """🔔 监听设置\n
-监听您感兴趣的钱包，并实时接收他的交易通知
+MONITOR_MENU_MESSAGE = """🔔 Monitor Settings\n
+Monitor wallets you're interested in and receive real-time transaction notifications
 """
 
 MONITOR_MENU_TEMPLATE = env.from_string(
-    """🔔 监听设置
-监听您感兴趣的钱包，并实时接收他的交易通知
+    """🔔 Monitor Settings
+Monitor wallets you're interested in and receive real-time transaction notifications
 
-{% if monitors %}当前监听列表:
+{% if monitors %}Current monitoring list:
 {%- for monitor in monitors[:10] %}
 {{ loop.index }}. {% if monitor.active %}🟢{% else %}🔴{% endif %} <code>{{ monitor.target_wallet }}</code>{% if monitor.wallet_alias %} - {{ monitor.wallet_alias }}{% endif %}
 {%- endfor %}
 {% endif %}"""
 )
 
-CREATE_MONITOR_MESSAGE = "📝 创建监听"
+CREATE_MONITOR_MESSAGE = "📝 Create Monitor"
 EDIT_MONITOR_MESSAGE = env.from_string(
-    """📝 编辑监听
+    """📝 Edit Monitor
 
-目标钱包: <code>{{ monitor.target_wallet }}</code>
-钱包别名: {{ monitor.wallet_alias }}
-状态: {% if monitor.active %}🟢监听中{% else %}🔴已暂停{% endif %}
+Target wallet: <code>{{ monitor.target_wallet }}</code>
+Wallet alias: {{ monitor.wallet_alias }}
+Status: {% if monitor.active %}🟢Monitoring{% else %}🔴Paused{% endif %}
 """
 )
 
 
 def render_monitor_menu(monitors: list[Monitor]):
-    """渲染监听菜单消息"""
+    """Render monitoring menu message"""
     return MONITOR_MENU_TEMPLATE.render(monitors=monitors)
 
 
@@ -103,20 +102,20 @@ def render_edit_monitor_message(monitor: Monitor):
 
 # NOTIFY
 NOTIFY_SWAP_TEMPLATE = env.from_string(
-    """🔔 交易通知\n
+    """🔔 Transaction Notification\n
 {{ human_description }}
 
-📛 钱包别名: {{ wallet_alias }} <code>{{ who }}</code>(点击复制)
-📝 类型: {{ tx_type_cn }}
-💱 交易方向: {{ tx_direction }}
-🪙 代币名称: ${{ token_symbol }} ({{ token_name }})
-🪙 代币地址: <code>{{ mint }}</code>
-💰 交易数量: {{ "%.4f"|format(from_amount) }} → {{ "%.4f"|format(to_amount) }}
-📊 持仓变化: {{ position_change_formatted }}
-💎 当前持仓: {{ "%.4f"|format(post_amount) }}
-⏰ 时间: {{ tx_time }}
-🔗 交易详情: <a href="https://solscan.io/tx/{{ signature }}">Solscan</a>
-📊 K线盯盘: <a href="https://gmgn.ai/sol/token/{{ mint }}">GMGN</a> | <a href="https://dexscreener.com/solana/{{ mint }}">DexScreen</a>
+📛 Wallet alias: {{ wallet_alias }} <code>{{ who }}</code>(Click to copy)
+📝 Type: {{ tx_type_cn }}
+💱 Transaction direction: {{ tx_direction }}
+🪙 Token name: ${{ token_symbol }} ({{ token_name }})
+🪙 Token address: <code>{{ mint }}</code>
+💰 Transaction amount: {{ "%.4f"|format(from_amount) }} → {{ "%.4f"|format(to_amount) }}
+📊 Position change: {{ position_change_formatted }}
+💎 Current position: {{ "%.4f"|format(post_amount) }}
+⏰ Time: {{ tx_time }}
+🔗 Transaction details: <a href="https://solscan.io/tx/{{ signature }}">Solscan</a>
+📊 K-line monitoring: <a href="https://gmgn.ai/sol/token/{{ mint }}">GMGN</a> | <a href="https://dexscreener.com/solana/{{ mint }}">DexScreen</a>
 """
 )
 
@@ -130,7 +129,7 @@ def render_first_use_message(mention, wallet_address, expiration_datetime):
 
 
 def render_start_message(mention, wallet_address, balance, expiration_datetime):
-    """渲染开始消息"""
+    """Render start message"""
     return START_TEMPLATE.render(
         mention=mention,
         wallet_address=wallet_address,
@@ -140,7 +139,7 @@ def render_start_message(mention, wallet_address, balance, expiration_datetime):
 
 
 def render_copytrade_message(target_wallet, copy_ratio, max_amount):
-    """渲染复制交易消息"""
+    """Render copy trade message"""
     return COPYTRADE_TEMPLATE.render(
         target_wallet=target_wallet,
         copy_ratio=copy_ratio,
@@ -149,14 +148,14 @@ def render_copytrade_message(target_wallet, copy_ratio, max_amount):
 
 
 def render_copytrade_menu(total, active_cnt):
-    """渲染复制交易菜单消息"""
+    """Render copy trade menu message"""
     return COPYTRADE_MENU_TEMPLATE.render(total=total, active_cnt=active_cnt)
 
 
 def render_notify_swap(
     swap_message: "SwapMessage",
 ):
-    """渲染交易通知消息"""
+    """Render transaction notification message"""
     return NOTIFY_SWAP_TEMPLATE.render(
         human_description=swap_message.human_description,
         token_name=swap_message.token_name,
@@ -176,16 +175,16 @@ def render_notify_swap(
 
 
 SETTING_TEMPLATE = env.from_string(
-    """钱包地址:
-<code>{{ wallet_address }}</code> (点击复制)
+    """Wallet address:
+<code>{{ wallet_address }}</code> (Click to copy)
 
-🚀️ 快速滑点: {{ quick_slippage }}
-🛡️ 防夹滑点: {{ sandwich_slippage }}%
-🟢 买入优先费:  {{ buy_priority_fee }} SOL
-🔴 卖出优先费:  {{ sell_priority_fee }} SOL
+🚀️ Quick slip point: {{ quick_slippage }}
+🛡️ Anti-slip points: {{ sandwich_slippage }}%
+🟢 Buy priority fee:  {{ buy_priority_fee }} SOL
+🔴 Selling priority fee:  {{ sell_priority_fee }} SOL
 
-自动滑点: 根据K线自动调整滑点，范围2.5%~30%。
-开启后，仅对快速模式生效，防夹模式不生效。
+Automatic slip point: Automatically adjust the slip point according to the chart, range 2.5%~30%.
+After turning on, it will only take effect in fast mode, and will not take effect in anti-clip mode.
 """
 )
 
@@ -196,7 +195,7 @@ def render_setting_message(setting: Setting):
     buy_priority_fee = setting.buy_priority_fee
     sell_priority_fee = setting.sell_priority_fee
     if setting.auto_slippage:
-        quick_slippage = "自动"
+        quick_slippage = "Automatic"
     else:
         quick_slippage = f"{setting.get_quick_slippage_pct()}%"
 
@@ -212,15 +211,15 @@ def render_setting_message(setting: Setting):
 SWAP_TOKEN_TEMPLATE = env.from_string(
     """{{ symbol }}({{ name }})
 <code>{{ mint }}</code>
-(长按复制)
+(Long press to copy)
 
-价格 ${{ price }}
-📊 K线盯盘: <a href="https://gmgn.ai/sol/token/{{ mint }}">GMGN</a> | <a href="https://dexscreener.com/solana/{{ mint }}">DexScreen</a>
+Price ${{ price }}
+📊 K-line monitoring: <a href="https://gmgn.ai/sol/token/{{ mint }}">GMGN</a> | <a href="https://dexscreener.com/solana/{{ mint }}">DexScreen</a>
 
-💎 持仓 {{ holding_sol_balance }} SOL
-| 代币 {{ holding_token_balance }}
+💎 Position {{ holding_sol_balance }} SOL
+| Token {{ holding_token_balance }}
 
-⚙️ 买 {{ buy_priority_fee }} SOL | 卖 {{ sell_priority_fee }} SOL (点击 /set 修改)
+⚙️ Buy {{ buy_priority_fee }} SOL | Sell {{ sell_priority_fee }} SOL (Click /set to modify)
 """
 )
 
@@ -235,49 +234,49 @@ def render_swap_token_message(token_info: TokenInfo, setting: Setting):
     )
 
 
-# 🔔 安全: Mint弃权 ✅ / 黑名单 ✅ / 烧池子 100%✅
-# ✅ 前10持仓大户: 15.35%
-# 🐀 老鼠仓: --
-# ✅ 池子: $1.4M (2,804.72 SOL)
-# 💊 Pump外盘(29D)
-# 🐦 推特 | 🌏 官网 | ✈️ 电报
+# 🔔 Security: Mint abandonment ✅ / Blacklist ✅ / Burning pool 100%✅
+# ✅ Top 10 holders: 15.35%
+# 🐀 Mouse hole: --
+# ✅ Pool: $1.4M (2,804.72 SOL)
+# 💊 Pump foreign market (29D)
+# 🐦 Twitter | 🌏 Official website | ✈️ Telegram
 
-# 价格 $0.04779    市值 $47.8M    K线盯盘
+# Price $0.04779     Market value $47.8M    K-line monitoring
 
-# 💎 持仓 1.041 SOL ($228.625)
-# | 代币 4,784.11 EVAN
-# | 起飞 3.41% 🚀
-# | 平均成本 $0.04621 (市值: $46.2M)
-# | 总买入 1 SOL
-# | 总卖出 0 SOL
-# 💳 余额 0.72515 SOL
+# 💎 Position 1.041 SOL ($228.625)
+# | Token 4,784.11 EVAN
+# | Takeoff 3.41% 🚀
+# | Average cost $0.04621 (Market value: $46.2M)
+# | Total buy 1 SOL
+# | Total sell 0 SOL
+# 💳 Balance 0.72515 SOL
 
 # ---------------------
-# ⛽ 建议优先费Tip: 快速 0.0029 SOL | 极速 0.0038 SOL
+# ⛽ Suggested priority fee tip: Quick 0.0029 SOL | Super quick 0.0038 SOL
 
 BUY_SELL_TEMPLATE = env.from_string(
-    """💡交易命令介绍:
+    """💡Trading Command Guide:
 
-/buy: 立即买入代币
-/sell: 立即卖出代币
-/create: 创建买/卖限价单
+/buy: Buy tokens immediately
+/sell: Sell tokens immediately
+/create: Create buy/sell limit orders
 
-示例命令：
+Example commands:
 /buy ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82 0.5
-表示立即买入 0.5 SOL BOME代币
+This means immediately buy 0.5 SOL worth of BOME tokens
 
 /sell ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82 50
 /sell ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82 50%
-表示立即卖出 50% BOME代币持仓
+This means immediately sell 50% of your BOME token holdings
     """
 )
 
 WALLET_TEMPLATE = env.from_string(
-    """🔑 钱包地址:
-<code>{{ wallet }}</code> (点击复制)
+    """🔑 Wallet address:
+<code>{{ wallet }}</code> (Click to copy)
 
-钱包余额: {{ sol_balance }} SOL <a href="https://gmgn.ai/sol/address/{{ wallet }}">交易记录</a>
-WSOL余额: {{ wsol_balance }} WSOL
+Wallet balance: {{ sol_balance }} SOL <a href="https://gmgn.ai/sol/address/{{ wallet }}">Transaction history</a>
+WSOL balance: {{ wsol_balance }} WSOL
 """
 )
 
@@ -291,15 +290,15 @@ def render_wallet_message(wallet: str, sol_balance: float, wsol_balance: float):
 
 
 NEW_WALLET_TEMPLATE = env.from_string(
-    """🆕 更换新钱包
-更换新钱包
-⚠️ 暂时仅支持1个钱包，更换新钱包私钥后，服务器会删除老钱包私钥，无法找回！
-⚠️ 更换钱包私钥后，原地址的所有挂单、钱包跟单、CTO跟单、策略等均会自动关闭！请手动处理资产
-⚠️ 请立即备份老钱包私钥 (不要分享给其他人)
-备份私钥：
-<code>{{ private_key }}</code> (点击复制)
+    """🆕 Change to New Wallet
+Change to a new wallet
+⚠️ Currently only supports 1 wallet. After changing to a new wallet private key, the server will delete the old wallet private key and it cannot be recovered!
+⚠️ After changing the wallet private key, all orders, wallet follows, CTO follows, and strategies on the original address will be automatically closed! Please handle assets manually
+⚠️ Please backup your old wallet private key immediately (do not share with others)
+Backup private key:
+<code>{{ private_key }}</code> (Click to copy)
 
-Tips: 本消息将在 30 秒后自动删除
+Tips: This message will be automatically deleted after 30 seconds
 """
 )
 
@@ -310,13 +309,13 @@ def render_new_wallet_message(keypair: Keypair):
 
 
 EXPORT_WALLET_TEMPLATE = env.from_string(
-    """🔑 钱包地址:
-<code>{{ wallet }}</code> (点击复制)
+    """🔑 Wallet address:
+<code>{{ wallet }}</code> (Click to copy)
 
-🔐 钱包私钥:
-<code>{{ private_key }}</code> (点击复制)
+🔐 Wallet private key:
+<code>{{ private_key }}</code> (Click to copy)
 
-⚠️ 请不要分享私钥给任何人 (本条消息5秒后销毁)
+⚠️ Do not share the private key with anyone (This message will be destroyed after 5 seconds)
 """
 )
 
@@ -332,12 +331,12 @@ def render_export_wallet_message(keypair: Keypair):
 
 
 ASSET_TEMPLATE = env.from_string(
-    """🔑 钱包地址:
-<code>{{ wallet }}</code> (点击复制)
+    """🔑 Wallet address:
+<code>{{ wallet }}</code> (Click to copy)
 
-💰 钱包余额: {{ sol_balance }} SOL
+💰 Wallet balance: {{ sol_balance }} SOL
 
-🔮 代币 | 数量
+🔮 Token | Quantity
 {%- for token in tokens %}
 {{ loop.index }}. <a href="https://t.me/{{ bot_name }}?start=asset_{{ token.mint }}">{{ token.symbol }}</a> | {{ token.balance_str }}
 {%- endfor -%}

@@ -2,26 +2,25 @@ from datetime import timedelta
 
 import aioredis
 import orjson as json
+from cache_preloader.core.base import BaseAutoUpdateCache
 from solbot_cache.constants import BLOCKHASH_CACHE_KEY
 from solbot_common.log import logger
 from solbot_common.utils import get_async_client
 from solbot_db.redis import RedisClient
 from solders.hash import Hash  # type: ignore
 
-from cache_preloader.core.base import BaseAutoUpdateCache
-
 
 class BlockhashCache(BaseAutoUpdateCache):
-    """区块哈希缓存管理器"""
+    """Block hash cache manager"""
 
     key = BLOCKHASH_CACHE_KEY
 
     def __init__(self, redis: aioredis.Redis):
         """
-        初始化区块哈希缓存管理器
+        Initialize block hash cache manager
 
         Args:
-            redis: Redis客户端实例
+            redis: Redis client instance
         """
         self.client = get_async_client()
         self.redis = redis
@@ -30,20 +29,20 @@ class BlockhashCache(BaseAutoUpdateCache):
     @classmethod
     async def _get_latest_blockhash(cls) -> tuple[Hash, int]:
         """
-        获取最新的区块哈希
+        Get the latest block hash
 
         Returns:
-            区块哈希和最后有效区块高度的元组
+            Tuple of block hash and last valid block height
         """
         resp = await get_async_client().get_latest_blockhash()
         return resp.value.blockhash, resp.value.last_valid_block_height
 
     async def _gen_new_value(self) -> str:
         """
-        生成新的缓存值
+        Generate new cache value
 
         Returns:
-            序列化后的区块哈希信息
+            Serialized block hash information
         """
         _hash, _last_valid_block_height = await self._get_latest_blockhash()
         return json.dumps(
@@ -56,14 +55,14 @@ class BlockhashCache(BaseAutoUpdateCache):
     @classmethod
     async def get(cls, redis: aioredis.Redis | None = None) -> tuple[Hash, int]:
         """
-        获取当前区块哈希和最后有效区块高度
-        如果可用，使用缓存值
+        Get the current block hash and last valid block height
+        If available, use the cached value
 
         Args:
-            redis: Redis客户端实例，如果为None则获取默认实例
+            redis: Redis client instance, if None, get the default instance
 
         Returns:
-            区块哈希和最后有效区块高度的元组
+            Tuple of block hash and last valid block height
         """
         # if os.getenv("PYTEST_CURRENT_TEST"):
         # return await cls._get_latest_blockhash()
@@ -71,7 +70,7 @@ class BlockhashCache(BaseAutoUpdateCache):
         redis = redis or RedisClient.get_instance()
         raw_cached_value = await redis.get(cls.key)
         if raw_cached_value is None:
-            logger.warning("区块哈希缓存未找到，正在更新...")
+            logger.warning("Block hash cache not found, updating...")
             blockhash_cache = cls(redis)
             raw_cached_value = await blockhash_cache._gen_new_value()
             await redis.set(cls.key, raw_cached_value, ex=timedelta(seconds=30))

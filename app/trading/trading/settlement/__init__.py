@@ -1,7 +1,7 @@
-"""交易结算模块
+"""Transaction Settlement Module
 
-包含以下主要组件：
-1. SwapSettlementProcessor: 交易结算处理器，负责获取和验证交易状态
+Contains the following main components:
+1. SwapSettlementProcessor: Transaction settlement processor, responsible for retrieving and validating transaction status
 """
 
 from .processor import SwapSettlementProcessor

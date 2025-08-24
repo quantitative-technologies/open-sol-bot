@@ -8,7 +8,6 @@ from solbot_common.types import copytrade
 from solbot_common.utils import get_async_client
 from solbot_db.redis import RedisClient
 from solders.pubkey import Pubkey  # type: ignore
-
 from wallet_tracker.benchmark import BenchmarkService
 from wallet_tracker.tx_monitor import TxMonitor
 from wallet_tracker.tx_worker import TransactionWorker
@@ -36,7 +35,7 @@ class WalletTracker:
     #         _tokens = await get_wallet_tokens(wallet, self.client)
     #         tokens.extend(_tokens)
     #
-    #     # 不存在则插入，存在则更新
+    #     # If it does not exist, insert it; if it exists, update it
     #     for token in tokens:
     #         mint_account = mint_accounts.get(token.mint.__str__())
     #         if mint_account is None:
@@ -54,7 +53,7 @@ class WalletTracker:
 
     async def start(self):
         # await self.sync_wallet()
-        # 使用 asyncio.gather 并发执行监控任务
+        # Use asyncio.gather to perform monitoring tasks concurrently
 
         await asyncio.gather(
             self.benchmark_service.start(),
@@ -71,10 +70,10 @@ class WalletTracker:
 if __name__ == "__main__":
     pre_start()
 
-    # 从配置中获取被监听钱包
+    # Get the listened wallet from the configuration
     wallets = set(settings.monitor.wallets)
 
-    # 从跟单配置中获取需要被监听的钱包
+    # Get the wallet to be monitored from the order configuration
     for copytrade in settings.copytrades:
         wallets.add(copytrade.target_wallet)
 
@@ -82,7 +81,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(tracker.start())
     except KeyboardInterrupt:
-        logger.info("程序被手动终止")
+        logger.info("The program was terminated manually")
     except Exception as e:
-        logger.error(f"程序异常终止: {e}")
+        logger.error(f"Program terminates abnormally: {e}")
         logger.exception(e)

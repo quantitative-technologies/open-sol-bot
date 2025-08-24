@@ -25,7 +25,7 @@ def validate_solana_address(address: str) -> tuple[bool, str]:
     if not re.match(base58_pattern, address):
         return (
             False,
-            "无效的 Solana 钱包地址格式。请确保地址是 32-44 个字符的 base58 编码字符串。",
+            "Invalid Solana wallet address format. Please ensure the address is a base58 encoded string of 32-44 characters.",
         )
 
     return True, ""
@@ -51,7 +51,7 @@ def validate_solana_private_key(private_key: str) -> tuple[bool, str]:
     if not re.match(base58_pattern, private_key):
         return (
             False,
-            "无效的 Solana 私钥格式",
+            "Invalid Solana private key format",
         )
 
     return True, ""

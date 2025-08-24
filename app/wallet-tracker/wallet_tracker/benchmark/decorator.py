@@ -2,7 +2,6 @@ import time
 from contextlib import asynccontextmanager
 
 from solbot_common.log import logger
-
 from wallet_tracker.benchmark.service import benchmark_service
 
 
@@ -51,24 +50,24 @@ async def show_timeline(tx_hash: str):
         else:
             return None
 
-    # 区间产生时间点 到 发现该交易的时间点，耗时：
+    # Time elapsed from block creation to transaction detection
     detect_elapsed = _calc_elapsed("block_time", "tx_detected")
 
-    # 开始抓取该交易时间点 到 结束抓取该交易的时间点，耗时
+    # Time elapsed from start to end of transaction fetching
     fetch_tx_detail_elapsed = _calc_elapsed("tx_start_fetch", "tx_end_fetch")
 
-    # 解析耗时
+    # Time elapsed for parsing
     parse_elapsed = _calc_elapsed("tx_start_parse", "tx_end_parse")
 
-    # 总耗时
+    # Total time elapsed
     total_elapsed = _calc_elapsed("block_time", "tx_end_parse")
 
     logger.info(
         f"\n Transaction: {tx_hash}"
-        f"\n 发现交易耗时: {detect_elapsed}"
-        f"\n 获取交易详情耗时: {fetch_tx_detail_elapsed}"
-        f"\n 解析交易耗时: {parse_elapsed}"
-        f"\n 总耗时: {total_elapsed}"
+        f"\n Time to detect transaction: {detect_elapsed}"
+        f"\n Time to fetch transaction details: {fetch_tx_detail_elapsed}"
+        f"\n Time to parse transaction: {parse_elapsed}"
+        f"\n Total time elapsed: {total_elapsed}"
     )
 
 

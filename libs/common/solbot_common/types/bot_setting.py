@@ -23,12 +23,12 @@ class BotSetting:
     custom_buy_amount_3: float = 0.5
     custom_buy_amount_4: float = 1
     custom_buy_amount_5: float = 3
-    # 自定义卖出的按钮份额
+    # Custom sell button percentages
     custom_sell_amount_1: float = 0.5  # %
     custom_sell_amount_2: float = 1  # %
 
     def set_quick_slippage(self, slippage: float):
-        """设置快速滑点
+        """Set quick slippage
 
         Args:
             slippage (float): 0-100%
@@ -36,7 +36,7 @@ class BotSetting:
         self.quick_slippage = int(slippage * 100)
 
     def get_quick_slippage_pct(self) -> float:
-        """获取快速滑点（%）
+        """Get quick slippage (%)
 
         Returns:
             float: 0-100%
@@ -44,7 +44,7 @@ class BotSetting:
         return self.quick_slippage / 100
 
     def set_sandwich_slippage(self, slippage: float):
-        """设置防夹滑点
+        """Set anti-sandwich slippage
 
         Args:
             slippage (float): 0-100%
@@ -52,7 +52,7 @@ class BotSetting:
         self.sandwich_slippage_bps = int(slippage * 100)
 
     def get_sandwich_slippage_pct(self) -> float:
-        """获取防夹滑点（%」
+        """Get anti-sandwich slippage (%)
 
         Returns:
             float: 0-100%

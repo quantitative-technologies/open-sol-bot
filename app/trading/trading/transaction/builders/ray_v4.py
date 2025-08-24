@@ -6,29 +6,23 @@ from solana.rpc.commitment import Processed
 from solana.rpc.types import TokenAccountOpts
 from solbot_cache import get_min_balance_rent
 from solbot_cache.rayidum import get_preferred_pool
-from solbot_common.constants import ACCOUNT_LAYOUT_LEN, SOL_DECIMAL, TOKEN_PROGRAM_ID, WSOL
-from solbot_common.utils.pool import (
-    AmmV4PoolKeys,
-    get_amm_v4_reserves,
-    make_amm_v4_swap_instruction,
-)
-from solbot_common.utils.utils import get_associated_token_address, get_token_balance
-from solders.instruction import Instruction  # type: ignore[reportMissingModuleSource]
+from solbot_common.constants import (ACCOUNT_LAYOUT_LEN, SOL_DECIMAL,
+                                     TOKEN_PROGRAM_ID, WSOL)
+from solbot_common.utils.pool import (AmmV4PoolKeys, get_amm_v4_reserves,
+                                      make_amm_v4_swap_instruction)
+from solbot_common.utils.utils import (get_associated_token_address,
+                                       get_token_balance)
+from solders.instruction import \
+    Instruction  # type: ignore[reportMissingModuleSource]
 from solders.keypair import Keypair  # type: ignore[reportMissingModuleSource]
 from solders.pubkey import Pubkey  # type: ignore[reportMissingModuleSource]
 from solders.system_program import (  # type: ignore[reportMissingModuleSource]
-    CreateAccountWithSeedParams,
-    create_account_with_seed,
-)
+    CreateAccountWithSeedParams, create_account_with_seed)
 from solders.transaction import VersionedTransaction  # type: ignore
-from spl.token.instructions import (
-    CloseAccountParams,  # type: ignore
-    InitializeAccountParams,
-    close_account,
-    create_associated_token_account,
-    initialize_account,
-)
-
+from spl.token.instructions import CloseAccountParams  # type: ignore
+from spl.token.instructions import (InitializeAccountParams, close_account,
+                                    create_associated_token_account,
+                                    initialize_account)
 from trading.swap import SwapDirection, SwapInType
 from trading.tx import build_transaction
 
@@ -43,55 +37,55 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
         sol_in: float,
         slippage_bps: int,
     ) -> list[Instruction]:
-        """构建购买代币的指令列表
+        """Build instructions for buying tokens
 
         Args:
-            payer_keypair: 支付者的密钥对
-            token_address: 代币地址
-            sol_in: 输入的SOL数量
-            slippage_bps: 滑点，以基点(bps)为单位，1bps = 0.01%
+            payer_keypair: Payer's keypair
+            token_address: Token address
+            sol_in: Amount of SOL to input
+            slippage_bps: Slippage in basis points (bps), 1bps = 0.01%
 
         Returns:
-            list[Instruction]: 指令列表
+            list[Instruction]: List of instructions
         """
-        logger.info(f"构建购买交易: {token_address}, SOL输入: {sol_in}, 滑点: {slippage_bps}bps")
+        logger.info(f"Building buy transaction: {token_address}, SOL input: {sol_in}, slippage: {slippage_bps}bps")
 
-        # 获取池子信息
+        # Get pool information
         pool_data = await get_preferred_pool(token_address)
         if pool_data is None:
-            raise ValueError(f"未找到代币 {token_address} 的交易池")
+            raise ValueError(f"Pool not found for token {token_address}")
 
-        # 构建池子密钥
+        # Build pool keys
         pool_keys = AmmV4PoolKeys.from_pool_data(
             pool_id=pool_data["pool_id"],
             amm_data=pool_data["amm_data"],
             market_data=pool_data["market_data"],
         )
 
-        # 确定代币铸币厂
+        # Determine token mint
         token_mint = pool_keys.base_mint if pool_keys.base_mint != WSOL else pool_keys.quote_mint
 
-        # 计算交易金额
+        # Calculate transaction amount
         amount_in = int(sol_in * SOL_DECIMAL)
 
-        # 获取池子储备量
+        # Get pool reserves
         base_reserve, quote_reserve, token_decimal = await get_amm_v4_reserves(pool_keys)
 
-        # 计算预期输出量
-        # 这里使用简化的计算方法，实际应用中可能需要更复杂的计算
+        # Calculate expected output
+        # This is a simplified calculation, actual implementation may need more complex calculations
         constant_product = base_reserve * quote_reserve
-        effective_sol_in = sol_in * (1 - (0.25 / 100))  # 考虑0.25%的交易费用
+        effective_sol_in = sol_in * (1 - (0.25 / 100))  # Consider 0.25% trading fee
         new_quote_reserve = quote_reserve + effective_sol_in
         new_base_reserve = constant_product / new_quote_reserve
         amount_out = base_reserve - new_base_reserve
 
-        # 应用滑点
-        slippage_adjustment = 1 - (slippage_bps / 10000)  # 转换bps为百分比
+        # Apply slippage
+        slippage_adjustment = 1 - (slippage_bps / 10000)  # Convert bps to percentage
         minimum_amount_out = int(amount_out * slippage_adjustment * (10**token_decimal))
 
-        logger.info(f"输入金额: {amount_in}, 最小输出金额: {minimum_amount_out}")
+        logger.info(f"Input amount: {amount_in}, minimum output amount: {minimum_amount_out}")
 
-        # 检查代币账户是否存在
+        # Check if token account exists
         token_account = None
         token_accounts = await self.rpc_client.get_token_accounts_by_owner(
             payer_keypair.pubkey(), TokenAccountOpts(mint=token_mint), Processed
@@ -100,22 +94,22 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
         create_token_account_ix = None
         if token_accounts.value:
             token_account = token_accounts.value[0].pubkey
-            logger.info(f"找到现有代币账户: {token_account}")
+            logger.info(f"Found existing token account: {token_account}")
         else:
             token_account = get_associated_token_address(payer_keypair.pubkey(), token_mint)
             create_token_account_ix = create_associated_token_account(
                 payer_keypair.pubkey(), payer_keypair.pubkey(), token_mint
             )
-            logger.info(f"创建新的关联代币账户: {token_account}")
+            logger.info(f"Creating new associated token account: {token_account}")
 
-        # 创建临时WSOL账户
+        # Create temporary WSOL account
         seed = base64.urlsafe_b64encode(os.urandom(24)).decode("utf-8")
         wsol_token_account = Pubkey.create_with_seed(payer_keypair.pubkey(), seed, TOKEN_PROGRAM_ID)
 
-        # 获取租金豁免所需的最小余额
+        # Get minimum balance needed for rent exemption
         balance_needed = await get_min_balance_rent()
 
-        # 创建WSOL账户指令
+        # Create WSOL account instruction
         create_wsol_account_ix = create_account_with_seed(
             CreateAccountWithSeedParams(
                 from_pubkey=payer_keypair.pubkey(),
@@ -128,7 +122,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             )
         )
 
-        # 初始化WSOL账户指令
+        # Initialize WSOL account instruction
         init_wsol_account_ix = initialize_account(
             InitializeAccountParams(
                 program_id=TOKEN_PROGRAM_ID,
@@ -138,7 +132,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             )
         )
 
-        # 创建交换指令
+        # Create swap instruction
         swap_ix = make_amm_v4_swap_instruction(
             amount_in=amount_in,
             minimum_amount_out=minimum_amount_out,
@@ -148,7 +142,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             owner=payer_keypair.pubkey(),
         )
 
-        # 关闭WSOL账户指令
+        # Close WSOL account instruction
         close_wsol_account_ix = close_account(
             CloseAccountParams(
                 program_id=TOKEN_PROGRAM_ID,
@@ -158,7 +152,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             )
         )
 
-        # 组装指令列表
+        # Assemble instruction list
         instructions = [
             create_wsol_account_ix,
             init_wsol_account_ix,
@@ -180,90 +174,90 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
         in_type: SwapInType,
         slippage_bps: int,
     ) -> list[Instruction]:
-        """构建卖出代币的指令列表
+        """Build instructions for selling tokens
 
         Args:
-            payer_keypair: 支付者的密钥对
-            token_address: 代币地址
-            ui_amount: 输入的数量（百分比或具体数量）
-            in_type: 输入类型（百分比或具体数量）
-            slippage_bps: 滑点，以基点(bps)为单位，1bps = 0.01%
+            payer_keypair: Payer's keypair
+            token_address: Token address
+            ui_amount: Input amount (percentage or specific amount)
+            in_type: Input type (percentage or specific amount)
+            slippage_bps: Slippage in basis points (bps), 1bps = 0.01%
 
         Returns:
-            list[Instruction]: 指令列表
+            list[Instruction]: List of instructions
         """
         if in_type == SwapInType.Pct:
             if not (0 < ui_amount <= 100):
-                raise ValueError("百分比必须在1到100之间")
+                raise ValueError("Percentage must be between 1 and 100")
         elif in_type == SwapInType.Qty:
             if ui_amount <= 0:
-                raise ValueError("数量必须大于0")
+                raise ValueError("Amount must be greater than 0")
         else:
             raise ValueError("in_type must be pct or qty")
 
         logger.info(
-            f"构建卖出交易: {token_address}, 输入: {ui_amount}{in_type.value}, 滑点: {slippage_bps}bps"
+            f"Building sell transaction: {token_address}, input: {ui_amount}{in_type.value}, slippage: {slippage_bps}bps"
         )
 
-        # 获取池子信息
+        # Get pool information
         pool_data = await get_preferred_pool(token_address)
         if pool_data is None:
-            raise ValueError(f"未找到代币 {token_address} 的交易池")
+            raise ValueError(f"Pool not found for token {token_address}")
 
-        # 构建池子密钥
+        # Build pool keys
         pool_keys = AmmV4PoolKeys.from_pool_data(
             pool_id=pool_data["pool_id"],
             amm_data=pool_data["amm_data"],
             market_data=pool_data["market_data"],
         )
 
-        # 确定代币铸币厂
+        # Determine token mint
         token_mint = pool_keys.base_mint if pool_keys.base_mint != WSOL else pool_keys.quote_mint
 
-        # 获取代币账户
+        # Get token account
         token_account = get_associated_token_address(payer_keypair.pubkey(), token_mint)
 
-        # 获取代币余额
+        # Get token balance
         token_balance = await get_token_balance(token_account, self.rpc_client)
         if token_balance is None or token_balance == 0:
-            raise ValueError(f"没有可用的代币余额: {token_mint}")
+            raise ValueError(f"No available token balance: {token_mint}")
 
-        # 计算要卖出的数量
+        # Calculate amount to sell
         if in_type == SwapInType.Pct:
             sell_amount = token_balance * (ui_amount / 100)
-            logger.info(f"代币余额: {token_balance}, 卖出数量: {sell_amount} ({ui_amount}%)")
+            logger.info(f"Token balance: {token_balance}, sell amount: {sell_amount} ({ui_amount}%)")
         else:
             sell_amount = ui_amount
-            logger.info(f"卖出数量: {sell_amount}")
+            logger.info(f"Sell amount: {sell_amount}")
 
-        # 获取池子储备量
+        # Get pool reserves
         base_reserve, quote_reserve, token_decimal = await get_amm_v4_reserves(pool_keys)
 
-        # 计算预期输出量
-        # 这里使用简化的计算方法，实际应用中可能需要更复杂的计算
+        # Calculate expected output
+        # This is a simplified calculation, actual implementation may need more complex calculations
         constant_product = base_reserve * quote_reserve
-        effective_token_in = sell_amount * (1 - (0.25 / 100))  # 考虑0.25%的交易费用
+        effective_token_in = sell_amount * (1 - (0.25 / 100))  # Consider 0.25% trading fee
         new_base_reserve = base_reserve + effective_token_in
         new_quote_reserve = constant_product / new_base_reserve
         amount_out = quote_reserve - new_quote_reserve
 
-        # 应用滑点
-        slippage_adjustment = 1 - (slippage_bps / 10000)  # 转换bps为百分比
+        # Apply slippage
+        slippage_adjustment = 1 - (slippage_bps / 10000)  # Convert bps to percentage
         minimum_amount_out = int(amount_out * slippage_adjustment * SOL_DECIMAL)
 
-        # 计算输入金额
+        # Calculate input amount
         amount_in = int(sell_amount * (10**token_decimal))
 
-        logger.info(f"输入金额: {amount_in}, 最小输出金额: {minimum_amount_out}")
+        logger.info(f"Input amount: {amount_in}, minimum output amount: {minimum_amount_out}")
 
-        # 创建临时WSOL账户
+        # Create temporary WSOL account
         seed = base64.urlsafe_b64encode(os.urandom(24)).decode("utf-8")
         wsol_token_account = Pubkey.create_with_seed(payer_keypair.pubkey(), seed, TOKEN_PROGRAM_ID)
 
-        # 获取租金豁免所需的最小余额
+        # Get minimum balance needed for rent exemption
         balance_needed = await get_min_balance_rent()
 
-        # 创建WSOL账户指令
+        # Create WSOL account instruction
         create_wsol_account_ix = create_account_with_seed(
             CreateAccountWithSeedParams(
                 from_pubkey=payer_keypair.pubkey(),
@@ -276,7 +270,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             )
         )
 
-        # 初始化WSOL账户指令
+        # Initialize WSOL account instruction
         init_wsol_account_ix = initialize_account(
             InitializeAccountParams(
                 program_id=TOKEN_PROGRAM_ID,
@@ -286,7 +280,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             )
         )
 
-        # 创建交换指令
+        # Create swap instruction
         swap_ix = make_amm_v4_swap_instruction(
             amount_in=amount_in,
             minimum_amount_out=minimum_amount_out,
@@ -296,7 +290,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             owner=payer_keypair.pubkey(),
         )
 
-        # 关闭WSOL账户指令
+        # Close WSOL account instruction
         close_wsol_account_ix = close_account(
             CloseAccountParams(
                 program_id=TOKEN_PROGRAM_ID,
@@ -306,7 +300,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             )
         )
 
-        # 组装指令列表
+        # Assemble instruction list
         instructions = [
             create_wsol_account_ix,
             init_wsol_account_ix,
@@ -314,7 +308,7 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
             close_wsol_account_ix,
         ]
 
-        # 如果卖出100%，则关闭代币账户
+        # If selling 100%, close token account
         if ui_amount == 100:
             close_token_account_ix = close_account(
                 CloseAccountParams(
@@ -339,20 +333,20 @@ class RaydiumV4TransactionBuilder(TransactionBuilder):
         use_jito: bool = False,
         priority_fee: float | None = None,
     ) -> VersionedTransaction:
-        """构建交易
+        """Build swap transaction
 
         Args:
-            keypair (Keypair): 钱包密钥对
-            token_address (str): 代币地址
-            ui_amount (float): 交易数量
-            swap_direction (SwapDirection): 交易方向
-            slippage_bps (int): 滑点，以 bps 为单位
-            in_type (SwapInType | None, optional): 输入类型. Defaults to None.
-            use_jito (bool, optional): 是否使用 Jito. Defaults to False.
-            priority_fee (Optional[float], optional): 优先费用. Defaults to None.
+            keypair (Keypair): Wallet keypair
+            token_address (str): Token address
+            ui_amount (float): Transaction amount
+            swap_direction (SwapDirection): Swap direction
+            slippage_bps (int): Slippage in basis points
+            in_type (SwapInType | None, optional): Input type. Defaults to None.
+            use_jito (bool, optional): Whether to use Jito. Defaults to False.
+            priority_fee (Optional[float], optional): Priority fee. Defaults to None.
 
         Returns:
-            VersionedTransaction: 构建好的交易
+            VersionedTransaction: Built transaction
         """
         if swap_direction not in [SwapDirection.Buy, SwapDirection.Sell]:
             raise ValueError("swap_direction must be buy or sell")

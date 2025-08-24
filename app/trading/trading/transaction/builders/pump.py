@@ -6,7 +6,8 @@ from solbot_common.constants import (ASSOCIATED_TOKEN_PROGRAM, PUMP_BUY_METHOD,
                                      SYSTEM_PROGRAM_ID, TOKEN_PROGRAM_ID, WSOL)
 from solbot_common.IDL.pumpfun import PumpFunInterface
 from solbot_common.log import logger
-from solbot_common.utils.utils import (get_bonding_curve_account, get_bonding_curve_pda_creator_vault,
+from solbot_common.utils.utils import (get_bonding_curve_account,
+                                       get_bonding_curve_pda_creator_vault,
                                        get_global_account)
 from solders.keypair import Keypair  # type: ignore
 from solders.pubkey import Pubkey  # type: ignore
@@ -73,7 +74,7 @@ class PumpTransactionBuilder(TransactionBuilder):
         create_instruction = None
         close_instruction = None
         if swap_direction == SwapDirection.Buy:
-            # 如果 ata 账户不存在，需要创建
+            # If ATA account doesn't exist, create it
             if not await has_ata(
                 self.rpc_client,
                 owner,

@@ -26,24 +26,24 @@ def max_amount_with_slippage(input_amount: int, slippage_bps: int) -> int:
 
 
 def calc_tx_units(fee: float) -> tuple[int, int]:
-    """根据期望的优先费用计算 unit price 和 unit limit
+    """Calculate unit price and unit limit based on desired priority fee
 
     Args:
-        fee: 期望支付的优先费用，单位是 SOL
+        fee: Desired priority fee in SOL
 
     Returns:
         tuple[int, int]: (unit_price, unit_limit)
-        - unit_price: 每个计算单位的价格（以 micro-lamports 为单位）
-        - unit_limit: 交易的计算单位上限
+        - unit_price: Price per compute unit (in micro-lamports)
+        - unit_limit: Maximum compute units for the transaction
     """
-    # 设置固定的计算单位上限
+    # Set fixed compute unit limit
     unit_limit = 200_000
 
-    # 将 SOL 转换为 lamports (1 SOL = 10^9 lamports)
+    # Convert SOL to lamports (1 SOL = 10^9 lamports)
     fee_in_lamports = int(fee * 1e9)
 
-    # 计算每个计算单位的价格
-    # 由于 unit_price 是以 micro-lamports 为单位，所以需要再乘以 1e6
+    # Calculate price per compute unit
+    # Since unit_price is in micro-lamports, multiply by 1e6
     unit_price = int((fee_in_lamports * 1e6) / unit_limit)
 
     return unit_price, unit_limit
@@ -52,18 +52,18 @@ def calc_tx_units(fee: float) -> tuple[int, int]:
 def calc_tx_units_and_split_fees(
     fee: float,
 ) -> tuple[int, int, float]:
-    """根据期望的优先费用计算 unit price 和 unit limit,同时计算 Jito 的小费
+    """Calculate unit price and unit limit based on desired priority fee, and calculate Jito tip
 
-    优先费用占比为 70%, Jito 小费占比为 30%,参考https://docs.jito.wtf/lowlatencytxnsend/#id19
+    Priority fee is 70%, Jito tip is 30%, see https://docs.jito.wtf/lowlatencytxnsend/#id19
 
     Args:
-        fee (float): 总费用，单位是 SOL
+        fee (float): Total fee in SOL
 
     Returns:
         tuple[int, int, float]: (unit_price, unit_limit, jito_fee)
-        - unit_price: 每个计算单位的价格（以 micro-lamports 为单位）
-        - unit_limit: 交易的计算单位上限
-        - jito_fee: Jito 的小费，单位是 SOL
+        - unit_price: Price per compute unit (in micro-lamports)
+        - unit_limit: Maximum compute units for the transaction
+        - jito_fee: Jito tip in SOL
     """
     priority_fee = fee * 0.7
     jito_fee = fee * 0.3

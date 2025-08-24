@@ -9,13 +9,10 @@ from solbot_common.config import settings
 from solbot_common.log import logger
 from solders.pubkey import Pubkey  # type: ignore
 from solders.signature import Signature  # type: ignore
-
 from wallet_tracker import benchmark
-from wallet_tracker.constants import (
-    FAILED_TX_SIGNATURE_CHANNEL,
-    NEW_TX_DETAIL_CHANNEL,
-    NEW_TX_SIGNATURE_CHANNEL,
-)
+from wallet_tracker.constants import (FAILED_TX_SIGNATURE_CHANNEL,
+                                      NEW_TX_DETAIL_CHANNEL,
+                                      NEW_TX_SIGNATURE_CHANNEL)
 from wallet_tracker.exceptions import NotSwapTransaction, TransactionError
 from wallet_tracker.wss.tx_detail_fetcher import TxDetailRawFetcher
 
@@ -24,7 +21,7 @@ from .account_log_monitor import AccountLogMonitor
 
 class TransactionDetailSubscriber:
     """
-    交易详情订阅者
+    Transaction Detail Subscriber
     """
 
     def __init__(
@@ -59,26 +56,26 @@ class TransactionDetailSubscriber:
             while remaining:
                 done, remaining = await asyncio.wait(remaining, return_when=asyncio.FIRST_COMPLETED)
 
-                # 检查完成的任务结果
+                # Check results of completed tasks
                 for task in done:
                     try:
                         result = task.result()
                         if result is not None:
-                            # 找到有效结果，取消剩余任务
+                            # Found valid result, cancel remaining tasks
                             for t in remaining:
                                 t.cancel()
                             return result
                     except Exception:
                         continue
 
-            # 所有任务都完成但没有找到有效结果
+            # All tasks completed but no valid result found
             logger.error(f"Transaction not found: {tx_sig}")
             return None
 
         except Exception as e:
             logger.error(f"Failed to fetch transaction: {e}")
             logger.exception(e)
-            # 发生异常时取消所有未完成的任务
+            # Cancel all unfinished tasks when exception occurs
             for task in tasks:
                 if not task.done():
                     task.cancel()
@@ -107,16 +104,16 @@ class TransactionDetailSubscriber:
         await self.redis.lpush(FAILED_TX_SIGNATURE_CHANNEL, tx_detail)
 
     async def process_transaction(self, tx_sig: str):
-        """处理单个交易"""
+        """Process a single transaction"""
         async with benchmark.with_fetch_tx(tx_sig):
             tx_detail = await self.fetch_transaction_detail(tx_sig)
         if tx_detail is None:
             logger.error(f"Failed to fetch transaction: {tx_sig}")
-            # 加入到失败队列
+            # Add to failure queue
             await self.push_failed_transaction_to_redis(tx_sig)
             return
 
-        # 使用 orjson 的 dumps，它返回 bytes，需要解码为 str
+        # Use orjson's dumps, which returns bytes, needs to be decoded to str
         tx_detail_text = json.dumps(tx_detail).decode("utf-8")
         try:
             await self.push_transaction_to_redis(tx_detail_text)
@@ -129,13 +126,13 @@ class TransactionDetailSubscriber:
         except Exception as e:
             logger.error(f"Failed to process transaction: {e}, details: {tx_detail_text}")
             logger.exception(e)
-            # 加入到失败队列
+            # Add to failure queue
             await self.push_failed_transaction_to_redis(tx_detail_text)
         finally:
             await benchmark.show_timeline(tx_sig)
 
     async def worker(self):
-        """单个 worker 协程"""
+        """Single worker coroutine"""
         while True:
             try:
                 assert self.redis is not None
@@ -156,15 +153,15 @@ class TransactionDetailSubscriber:
                 continue
 
     async def start(self, num_workers: int = 2):
-        """启动多个 worker 协程并行处理消息"""
+        """Start multiple worker coroutines to process messages in parallel"""
         self.is_running = True
 
-        # 启动 worker
+        # Start workers
         self.workers = [asyncio.create_task(self.worker()) for _ in range(num_workers)]
 
         async def _f():
             try:
-                # 启动日志订阅
+                # Start log subscription
                 await self.account_log_monitor.start()
                 await asyncio.gather(*self.workers)
             except Exception as e:
@@ -174,7 +171,7 @@ class TransactionDetailSubscriber:
                     worker.cancel()
 
         monitor_task = asyncio.create_task(_f())
-        # 添加任务完成回调以处理可能的异常
+        # Add task completion callback to handle potential exceptions
         monitor_task.add_done_callback(lambda t: t.exception() if t.exception() else None)
 
     async def stop(self) -> None:
@@ -184,17 +181,17 @@ class TransactionDetailSubscriber:
             worker.cancel()
 
     async def subscribe_wallet_transactions(self, wallet: Pubkey) -> None:
-        """订阅钱包的交易信息。
+        """Subscribe to wallet transactions.
 
         Args:
-            wallet (Pubkey): 要订阅的钱包地址
+            wallet (Pubkey): The wallet address to subscribe to
         """
         await self.account_log_monitor.waitting_subscribe_wallet.put(wallet)
 
     async def unsubscribe_wallet_transactions(self, wallet: Pubkey) -> None:
-        """取消订阅钱包的交易信息。
+        """Unsubscribe from wallet transactions.
 
         Args:
-            wallet (Pubkey): 要取消订阅的钱包地址
+            wallet (Pubkey): The wallet address to unsubscribe from
         """
         await self.account_log_monitor.waitting_unsubscribe_wallet.put(wallet)

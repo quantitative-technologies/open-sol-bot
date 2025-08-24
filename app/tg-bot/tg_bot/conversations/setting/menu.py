@@ -7,15 +7,11 @@ from aiogram.types import CallbackQuery, ForceReply, Message
 from loguru import logger
 from solbot_common.types.bot_setting import BotSetting as Setting
 from solbot_services.bot_setting import BotSettingService as SettingService
-
 from tg_bot.conversations.setting.render import render
 from tg_bot.conversations.states import SettingStates
 from tg_bot.services.user import UserService
-from tg_bot.utils import (
-    cleanup_conversation_messages,
-    get_setting_from_db,
-    invalid_input_and_request_reinput,
-)
+from tg_bot.utils import (cleanup_conversation_messages, get_setting_from_db,
+                          invalid_input_and_request_reinput)
 
 from .template import SET_QUICK_SLIPPAGE_PROMPT, SET_SANDWICH_SLIPPAGE_PROMPT
 
@@ -142,14 +138,14 @@ async def handle_quick_slippage(message: Message, state: FSMContext):
         slippage = int(message.text.strip())
     except ValueError:
         return await invalid_input_and_request_reinput(
-            text="❌ 快速滑点必须是一个数字(0-100)，请重新输入：",
+            text="❌ Quick slippage must be a number (0-100), please re-enter:",
             last_message=message,
             state=state,
         )
 
     if slippage <= 0 or slippage > 100:
         return await invalid_input_and_request_reinput(
-            text="❌ 快速滑点必须在 0 到 100 之间，请重新输入：",
+            text="❌ Quick slippage must be between 0 and 100, please re-enter:",
             last_message=message,
             state=state,
         )
@@ -228,14 +224,14 @@ async def handle_sandwich_slippage(message: Message, state: FSMContext):
         sandwich_slippage = int(message.text.strip())
     except ValueError:
         return await invalid_input_and_request_reinput(
-            text="❌ 防夹滑点必须是一个数字(0-100)，请重新输入：",
+            text="❌ Anti-sandwich slippage must be a number (0-100), please re-enter:",
             last_message=message,
             state=state,
         )
 
     if sandwich_slippage <= 0 or sandwich_slippage > 100:
         return await invalid_input_and_request_reinput(
-            text="❌ 防夹滑点必须在 0 到 100 之间，请重新输入：",
+            text="❌ Anti-sandwich slippage must be between 0 and 100, please re-enter:",
             last_message=message,
             state=state,
         )
@@ -298,7 +294,7 @@ async def edit_buy_priority_fee(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        f"👋 请输入买入优先费(当前 {setting.buy_priority_fee}):",
+        f"👋 Please enter buy priority fee (current {setting.buy_priority_fee}):",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -320,14 +316,14 @@ async def handle_buy_priority_fee(message: Message, state: FSMContext):
         buy_priority_fee = float(message.text.strip())
     except ValueError:
         return await invalid_input_and_request_reinput(
-            text="❌ 买入优先费必须是一个数字，请重新输入：",
+            text="❌ Buy priority fee must be a number, please re-enter:",
             last_message=message,
             state=state,
         )
 
     if buy_priority_fee < 0:
         return await invalid_input_and_request_reinput(
-            text="❌ 买入优先费必须大于等于 0，请重新输入：",
+            text="❌ Buy priority fee must be greater than or equal to 0, please re-enter:",
             last_message=message,
             state=state,
         )
@@ -365,7 +361,7 @@ async def handle_buy_priority_fee(message: Message, state: FSMContext):
         **render_data,
     )
 
-    # 重置 state 状态
+    # Reset state
     await state.set_state(None)
 
 
@@ -393,7 +389,7 @@ async def edit_sell_priority_fee(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        f"👋 请输入卖出优先费(当前 {setting.sell_priority_fee}):",
+        f"👋 Please enter sell priority fee (current {setting.sell_priority_fee}):",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -415,14 +411,14 @@ async def handle_sell_priority_fee(message: Message, state: FSMContext):
         sell_priority_fee = float(message.text.strip())
     except ValueError:
         return await invalid_input_and_request_reinput(
-            text="❌ 卖出优先费是数字，请重新输入：",
+            text="❌ Sell priority fee must be a number, please re-enter:",
             last_message=message,
             state=state,
         )
 
     if sell_priority_fee < 0:
         return await invalid_input_and_request_reinput(
-            text="❌ 卖出优先费必须大于等于 0，请重新输入：",
+            text="❌ Sell priority fee must be greater than or equal to 0, please re-enter:",
             last_message=message,
             state=state,
         )
@@ -549,7 +545,7 @@ async def set_buy_amount(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        f"👋 请输入买入SOL数量(当前 {current_amount}):",
+        f"👋 Please enter buy amount in SOL (current {current_amount}):",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -574,15 +570,14 @@ async def handle_custom_buy_amount(message: Message, state: FSMContext):
         buy_amount = float(message.text.strip())
     except ValueError:
         return await invalid_input_and_request_reinput(
-            "❌ 数量必须大于等于 0，请重新输入：",
+            "❌ Amount must be greater than or equal to 0, please re-enter:",
             message,
             state,
         )
-        return
 
     if buy_amount <= 0:
         return await invalid_input_and_request_reinput(
-            "❌ 数量必须大于等于 0，请重新输入：",
+            "❌ Amount must be greater than or equal to 0, please re-enter:",
             message,
             state,
         )
@@ -668,7 +663,7 @@ async def set_sell_amount(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        f"👋 请输入卖出百分比(当前 {current_amount * 100}):",
+        f"👋 Please enter sell amount in percentage (current {current_amount * 100}):",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -693,19 +688,19 @@ async def handle_custom_sell_amount(message: Message, state: FSMContext):
         sell_bps = round(float(message.text.strip()), 2)
     except ValueError:
         return await invalid_input_and_request_reinput(
-            "❌ 请输入 1-100 的数字",
+            "❌ Please enter a number between 0 and 100",
             message,
             state,
         )
 
     if sell_bps <= 0 or sell_bps > 100:
         return await invalid_input_and_request_reinput(
-            "❌ 请输入正确的数字，取值范围为 0~100",
+            "❌ Please enter a valid percentage between 0 and 100",
             message,
             state,
         )
 
-    # 转为小数
+    # Convert to decimal
     sell_bps = sell_bps / 100
     data = await state.get_data()
     if idx := data.get("sell_idx"):

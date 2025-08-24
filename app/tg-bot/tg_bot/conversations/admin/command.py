@@ -1,7 +1,6 @@
 from aiogram.types import Message
 from solbot_common.config import settings
 from solbot_common.log import logger
-
 from tg_bot.services.activation import ActivationCodeService
 
 
@@ -15,7 +14,7 @@ async def generate_activation_code(message: Message):
     user_id = message.from_user.id
     if user_id != settings.tg_bot.manager_id:
         logger.warning(f"User {user_id} is not manager")
-        message.answer("❌ 你不是管理员，无法执行此操作")
+        message.answer("❌ You are not an administrator and cannot do this")
         return
 
     text = message.text.strip()
@@ -31,4 +30,4 @@ async def generate_activation_code(message: Message):
     seconds = expired_in_days * 24 * 60 * 60
     code = await ActivationCodeService().generate_code(seconds)
     logger.info(f"User {user_id} generate activation code: {code}")
-    await message.answer(f"✅ 激活码: <code>{code}</code>(点击复制) ({expired_in_days} 天)")
+    await message.answer(f"✅ Activation code: <code>{code}</code>(Click to copy) ({expired_in_days} sky)")

@@ -1,26 +1,25 @@
 from datetime import timedelta
 
 import aioredis
+from cache_preloader.core.base import BaseAutoUpdateCache
 from solbot_cache.constants import MIN_BALANCE_RENT_CACHE_KEY
 from solbot_common.log import logger
 from solbot_common.utils import get_async_client
 from solbot_db.redis import RedisClient
 from spl.token.async_client import AsyncToken
 
-from cache_preloader.core.base import BaseAutoUpdateCache
-
 
 class MinBalanceRentCache(BaseAutoUpdateCache):
-    """最小租金余额缓存管理器"""
+    """Minimum Balance Rent Cache Manager"""
 
     key = MIN_BALANCE_RENT_CACHE_KEY
 
     def __init__(self, redis: aioredis.Redis):
         """
-        初始化最小租金余额缓存管理器
+        Initialize minimum balance rent cache manager
 
         Args:
-            redis: Redis客户端实例
+            redis: Redis client instance
         """
         self.client = get_async_client()
         self.redis = redis
@@ -28,10 +27,10 @@ class MinBalanceRentCache(BaseAutoUpdateCache):
 
     async def _gen_new_value(self) -> int:
         """
-        生成新的缓存值
+        Generate new cache value
 
         Returns:
-            最小租金余额
+            Minimum balance rent
         """
         min_balance = await AsyncToken.get_min_balance_rent_for_exempt_for_account(self.client)
         return min_balance
@@ -39,18 +38,18 @@ class MinBalanceRentCache(BaseAutoUpdateCache):
     @classmethod
     async def get(cls, redis: aioredis.Redis | None = None) -> int:
         """
-        获取最小租金余额
+        Get minimum balance rent
 
         Args:
-            redis: Redis客户端实例，如果为None则获取默认实例
+            redis: Redis client instance, if None gets default instance
 
         Returns:
-            最小租金余额
+            Minimum balance rent
         """
         redis = redis or RedisClient.get_instance()
         cached_value = await redis.get(cls.key)
         if cached_value is None:
-            logger.warning("最小租金余额缓存未找到，正在更新...")
+            logger.warning("Minimum balance rent cache not found, updating...")
             min_balance_rent_cache = cls(redis)
             cached_value = await min_balance_rent_cache._gen_new_value()
             await redis.set(cls.key, cached_value, ex=timedelta(seconds=30))

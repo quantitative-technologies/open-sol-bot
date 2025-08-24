@@ -2,7 +2,6 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
-
 from tg_bot.conversations.states import MonitorStates
 from tg_bot.services.monitor import MonitorService
 from tg_bot.utils import delete_later
@@ -57,7 +56,7 @@ async def stop_all_monitor(callback: CallbackQuery, state: FSMContext):
         await MonitorService().inactive_all(callback.from_user.id)
     except Exception as e:
         logger.exception(e)
-        msg = await callback.message.answer("停止全部监听失败, 请稍后重试")
+        msg = await callback.message.answer("Stop all listening failed, please try again later")
         await delete_later(msg)
 
     data = await render(callback)

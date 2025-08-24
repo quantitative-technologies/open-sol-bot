@@ -6,7 +6,6 @@ from solbot_db.redis import RedisClient
 from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-
 from tg_bot.models.monitor import Monitor
 
 
@@ -45,7 +44,7 @@ class MonitorService:
             raise ValueError("target_wallet is required")
 
         try:
-            # 第一步：创建数据库记录
+            # Step 1: Create database record
             db_monitor = MonitorModel(
                 chat_id=monitor.chat_id,
                 target_wallet=monitor.target_wallet,
@@ -53,21 +52,21 @@ class MonitorService:
                 active=monitor.active,
             )
             session.add(db_monitor)
-            await session.flush()  # 获取自动生成的 ID
+            await session.flush()  # Get auto-generated ID
 
-            # 第二步：发送事件
+            # Step 2: Send event
             try:
                 assert db_monitor.id, "ID should not be None"
                 await self.producer.resume_monitor(
-                    db_monitor.id,  # 使用数据库生成的 ID
+                    db_monitor.id,  # Use database-generated ID
                     db_monitor.target_wallet,
                     db_monitor.chat_id,
                 )
             except Exception as e:
-                await session.rollback()  # 如果发送事件失败，回滚数据库操作
+                await session.rollback()  # If sending event fails, roll back database operation
                 raise ValueError(f"Failed to send monitor event: {e}")
 
-            # 所有操作都成功，提交事务
+            # All operations are successful, commit transaction
             await session.commit()
 
         except Exception as e:

@@ -4,7 +4,6 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ForceReply, Message
 from loguru import logger
-
 from tg_bot.conversations.states import MonitorStates
 from tg_bot.keyboards.monitor import create_monitor_keyboard
 from tg_bot.models.monitor import Monitor
@@ -71,7 +70,7 @@ async def start_set_address(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入要监听的钱包地址：",
+        "👋 Please enter the wallet address to monitor:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -96,7 +95,7 @@ async def handle_set_address(message: Message, state: FSMContext):
     # Validate address
     if not validate_solana_address(address):
         msg = await message.answer(
-            "❌ 无效的 Solana 钱包地址，请重新输入：", reply_markup=ForceReply()
+            "❌ Invalid Solana wallet address, please re-enter：", reply_markup=ForceReply()
         )
         await state.update_data(prompt_message_id=msg.message_id)
         await state.update_data(prompt_chat_id=msg.chat.id)
@@ -162,7 +161,7 @@ async def start_set_alias(callback: CallbackQuery, state: FSMContext):
 
     # Send prompt message with force reply
     msg = await callback.message.answer(
-        "👋 请输入钱包别名：",
+        "👋 Please enter wallet alias:",
         parse_mode="HTML",
         reply_markup=ForceReply(),
     )
@@ -253,17 +252,17 @@ async def submit_monitor(callback: CallbackQuery, state: FSMContext):
         return
 
     if monitor_settings.target_wallet is None:
-        # 发送错误消息并在 10 秒后删除
-        error_message = await callback.message.answer("❌ 创建失败，请设置正确的跟单地址")
+        # Send an error message and 10 Delete in seconds
+        error_message = await callback.message.answer("❌ Creation failed, please set the correct order address")
         await delete_later(error_message)
         return
 
-    # 写入数据库
+    # Write to the database
     try:
         await monitor_service.add(monitor_settings)
     except Exception as e:
         logger.warning(f"Failed to add monitor: {e}")
-        error_message = await callback.message.answer("❌ 创建失败，请稍后重试")
+        error_message = await callback.message.answer("❌ Creation failed, please try again later")
         await delete_later(error_message)
         return
 
