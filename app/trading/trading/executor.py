@@ -10,6 +10,7 @@ from solbot_db.session import NEW_ASYNC_SESSION, provide_session
 from solders.keypair import Keypair  # type: ignore
 from solders.signature import Signature  # type: ignore
 from sqlmodel import select
+
 from trading.swap import SwapDirection, SwapInType
 from trading.transaction import TradingRoute, TradingService
 
@@ -90,10 +91,10 @@ class TradingExecutor:
         return trade_route
 
     async def exec(self, swap_event: SwapEvent) -> Signature | None:
-        """Execute transaction
+        """执行交易
 
         Args:
-            swap_event (SwapEvent): Swap event
+            swap_event (SwapEvent): 交易事件
 
         Raises:
             ConnectTimeout: If connection to the RPC node times out
@@ -109,41 +110,8 @@ class TradingExecutor:
         sig = None
         keypair = await self.__get_keypair(swap_event.user_pubkey)
         swap_in_type = SwapInType(swap_event.swap_in_type)
-
-        # Check if we need to use Pump protocol for trading
-        should_use_pump = False
-        program_id = swap_event.program_id
-
-        try:
-            is_pump_token_launched = await self._launch_cache.is_pump_token_launched(token_address)
-            if program_id == PUMP_FUN_PROGRAM_ID or (
-                token_address.endswith("pump") and not is_pump_token_launched
-            ):
-                should_use_pump = True
-                logger.info(
-                    f"Token {token_address} is not launched on Raydium, using Pump protocol to trade"
-                )
-            else:
-                logger.info(
-                    f"Token {token_address} is launched on Raydium, using Raydium protocol to trade"
-                )
-                # If token is launched on Raydium, use Raydium protocol for trading
-                swap_event.program_id = RAY_V4_PROGRAM_ID
-        except Exception as e:
-            logger.exception(f"Failed to check launch status, cause: {e}")
-
-        if should_use_pump:
-            logger.info("Program ID is PUMP")
-            trade_route = TradingRoute.PUMP
-        # NOTE: Not ideal in testing, using alternative solution for now
-        elif swap_event.program_id == RAY_V4_PROGRAM_ID:
-            logger.info("Program ID is RayV4")
-            trade_route = TradingRoute.RAYDIUM_V4
-        elif program_id is None:
-            logger.warning("Program ID is Unknown, So We use third party to trade")
-            trade_route = TradingRoute.DEX
-        else:
-            raise ValueError(f"Program ID is not supported, {swap_event.program_id}")
+           
+        trade_route = await self.find_route(swap_event)
 
         sig = await self._trading_service.use_route(trade_route).swap(
             keypair,
