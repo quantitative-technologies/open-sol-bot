@@ -13,6 +13,7 @@ PUMP_FUN_PROGRAM_ID = str(PUMP_FUN_PROGRAM)
 @pytest.mark.parametrize("swap_event_fixture,expected_route", [
     ("swap_event_from_logs", TradingRoute.PUMP),
     ("swap_event_from_logs_second", TradingRoute.DEX),
+    ("swap_event_from_logs_third", TradingRoute.DEX),
 ])
 async def test_find_route(executor, request, swap_event_fixture, expected_route):
     """Test the find_trading_route method with both log examples"""

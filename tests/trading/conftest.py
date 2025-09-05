@@ -34,6 +34,12 @@ def executor(rpc_client):
 #61, pre_token_amount=25274744460671, post_token_amount=29456564448173, program_id='6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P')
 
 
+#SwapEvent #3
+#user_pubkey='5b9tuvErmHAXpfGNv4wyRDQx6mLhYp4tKry52gxhToBa' swap_mode='ExactIn' input_mint='So11111111111111111111111111111111111111112' output_mint='7i
+#CcjyC8NWooMmpjwaAuFPG7ZeGvSwDjKRMPcNdei3ve' amount=50000000 ui_amount=0.05 timestamp=1756687287 amount_pct=None swap_in_type='qty' priority_fee=0.0001 slippage_bps=250 by='copytrade' dynamic_slippage=False min_slippage_bps=None max_slippage_bps=None program_id='cpamdpZCGK
+#Uy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG' tx_event=TxEvent(signature='4CL5kwExbe7JkFFjmGvTqdrpKhV8kjWkpZKy7ovR2GWU2dFBMJEXaBAfVBApzgAxNVKbSaNzuk7SZjnQbvwSyfZf', from_amount=5092044280, from_decimals=9, to_amount=8883051365766, to_decimals=6, mint='7iCcjyC8NWooMmpjwaAuFPG7ZeGvSwD
+#jKRMPcNdei3ve', who='DfMxre4cKmvogbLrPigxmibVTTQDuzjdXojWzjCXXhzj', tx_type=<TxType.OPEN_POSITION: 'open_position'>, tx_direction='buy', timestamp=1756687287, pre_token_amount=0, post_token_amount=8883051365766, program_id='cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG')
+
 @pytest.fixture
 def tx_event_from_logs() -> TxEvent:
     """TxEvent instance based on logged output."""
@@ -98,4 +104,47 @@ def swap_event_from_logs_second():
         timestamp=0,
     )
 
+
+@pytest.fixture
+def tx_event_from_logs_third() -> TxEvent:
+    """Third TxEvent instance derived from logged example (#3)."""
+    return TxEvent(
+        signature="4CL5kwExbe7JkFFjmGvTqdrpKhV8kjWkpZKy7ovR2GWU2dFBMJEXaBAfVBApzgAxNVKbSaNzuk7SZjnQbvwSyfZf",
+        from_amount=5092044280,
+        from_decimals=9,
+        to_amount=8883051365766,
+        to_decimals=6,
+        mint="7iCcjyC8NWooMmpjwaAuFPG7ZeGvSwDjKRMPcNdei3ve",
+        who="DfMxre4cKmvogbLrPigxmibVTTQDuzjdXojWzjCXXhzj",
+        tx_type=TxType.OPEN_POSITION,
+        tx_direction="buy",
+        timestamp=1756687287,
+        pre_token_amount=0,
+        post_token_amount=8883051365766,
+        program_id="cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG",
+    )
+
+
+@pytest.fixture
+def swap_event_from_logs_third(tx_event_from_logs_third) -> SwapEvent:
+    """Third SwapEvent matching the commented example (#3)."""
+    return SwapEvent(
+        user_pubkey="5b9tuvErmHAXpfGNv4wyRDQx6mLhYp4tKry52gxhToBa",
+        swap_mode="ExactIn",
+        input_mint="So11111111111111111111111111111111111111112",
+        output_mint="7iCcjyC8NWooMmpjwaAuFPG7ZeGvSwDjKRMPcNdei3ve",
+        amount=50000000,
+        ui_amount=0.05,
+        timestamp=1756687287,
+        amount_pct=None,
+        swap_in_type="qty",
+        priority_fee=0.0001,
+        slippage_bps=250,
+        by="copytrade",
+        dynamic_slippage=False,
+        min_slippage_bps=None,
+        max_slippage_bps=None,
+        program_id="cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG",
+        tx_event=tx_event_from_logs_third,
+    )
 
