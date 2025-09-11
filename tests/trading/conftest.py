@@ -34,6 +34,28 @@ def executor(rpc_client):
 #61, pre_token_amount=25274744460671, post_token_amount=29456564448173, program_id='6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P')
 
 
+#CopyTrade TxEvent
+#TxEvent(signature='H6AkB4z1SW1iumzug8duP4cNY8B9ungRpVrfodLNq7eoSHd5WsJEiUdkvgZtPHJnozNQKoS73dkKKUWwqtKNHiz', from_amount=99999000000, from_decimals=6, to_amount=2119280, to_decimals=9, mint='7Rh9XrXpKRZYTBMtqRxKMXwH631jDWcCnWRP9o8Spump', who='8A2KcvmvGcaxGfamX5nS5CJtqyiiziBWTW96SV5WoSfF', tx_type=<TxType.REDUCE_POSITION: 'reduce_position'>, tx_direction='sell', timestamp=1757588000, pre_token_amount=4789987589459, post_token_amount=4689988589459, program_id=None)
+
+@pytest.fixture
+def tx_event_copytrade_from_logs() -> TxEvent:
+    """CopyTrade TxEvent instance based on logged output."""
+    return TxEvent(
+        signature="H6AkB4z1SW1iumzug8duP4cNY8B9ungRpVrfodLNq7eoSHd5WsJEiUdkvgZtPHJnozNQKoS73dkKKUWwqtKNHiz",
+        from_amount=99999000000,
+        from_decimals=6,
+        to_amount=2119280,
+        to_decimals=9,
+        mint="7Rh9XrXpKRZYTBMtqRxKMXwH631jDWcCnWRP9o8Spump",
+        who="8A2KcvmvGcaxGfamX5nS5CJtqyiiziBWTW96SV5WoSfF",
+        tx_type=TxType.REDUCE_POSITION,
+        tx_direction="sell",
+        timestamp=1757588000,
+        pre_token_amount=4789987589459,
+        post_token_amount=4689988589459,
+        program_id=None,
+    )
+
 @pytest.fixture
 def tx_event_from_logs() -> TxEvent:
     """TxEvent instance based on logged output."""
