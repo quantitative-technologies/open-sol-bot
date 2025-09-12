@@ -50,7 +50,14 @@ class TradingExecutor:
         _, token_address = self._get_direction_address(swap_event)
 
         try:
-            if await is_pumpfun_token(token_address):
+             is_pump = await is_pumpfun_token(token_address)
+        except ValueError as e:
+            logger.warning(f"Failed to check if token is pumpfun token, cause: {e}. Falling back to guess.")
+            is_pump = token_address.endswith("pump")
+
+        
+        try:
+            if is_pump:
                 is_pump_token_graduated = await self._launch_cache.is_pump_token_graduated(token_address)
                 logger.info(f"Pump token {token_address} is graduated: {is_pump_token_graduated}")
                 if not is_pump_token_graduated:
@@ -85,7 +92,9 @@ class TradingExecutor:
             logger.warning("Program ID is Unknown. Using Jupiter DEX aggregator to trade")
             trade_route = TradingRoute.DEX
         else:
-            raise ValueError(f"Program ID is not supported, {swap_event.program_id}")
+            logger.warning("Program ID: {}, is unkown to the bot. Using Jupiter DEX aggregator to trade", swap_event.program_id)
+            trade_route = TradingRoute.DEX
+            #raise ValueError(f"Program ID is not supported, {swap_event.program_id}")
 
         return trade_route
 
