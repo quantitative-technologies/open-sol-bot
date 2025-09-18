@@ -6,7 +6,7 @@ from construct import Flag, Int64ul, Struct
 from solbot_common.layouts.layouts import PUBLIC_KEY_LAYOUT
 from solders.pubkey import Pubkey  # type: ignore
 
-from .calculate_discriminator import calculate_discriminator
+#from .calculate_discriminator import calculate_discriminator
 
 # See: https://github.com/pump-fun/pump-public-docs/blob/main/docs/PUMP_PROGRAM_README.md
 GLOBAL_ACCOUNT_LAYOUT = Struct(

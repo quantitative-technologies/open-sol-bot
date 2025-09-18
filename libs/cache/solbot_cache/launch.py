@@ -1,7 +1,7 @@
 from solbot_common.constants import PUMP_FUN_PROGRAM
-from solbot_common.utils.utils import (get_async_client,
-                                       get_bonding_curve_account)
-from solders.pubkey import Pubkey  # type: ignore
+from solbot_common.log import logger
+from solbot_common.utils.utils import get_async_client, get_bonding_curve_account
+from solders.pubkey import Pubkey
 
 from .cached import cached
 
@@ -21,27 +21,25 @@ class LaunchCache:
         return "LaunchCache()"
 
     @cached(ttl=None, noself=True)
-    async def is_pump_token_launched(self, mint: str | Pubkey) -> bool:
-        """Examine if a Pump.fun token has been launched.
+    async def is_pump_token_graduated(self, mint: str | Pubkey) -> bool:
+        """Examine if a Pump.fun token has graduated.
 
-        通过检查代币的 virtual_sol_reserves 是否为 0 来判断。
-        如果为 0，说明代币已经在 Raydium 上发射。
+        By checking if the token has completed the bonding curve.
 
         Args:
             mint (str): 代币的 mint 地址
 
         Returns:
-            bool: 如果代币已发射返回 True，否则返回 False
+            bool: Whether the token has completed the bonding curve
 
         Raises:
-            BondingCurveNotFound: 如果找不到对应的 bonding curve 账户
+            BondingCurveNotFound: If cannot find the bonding curve account
         """
         result = await get_bonding_curve_account(
             self.client,
             Pubkey.from_string(mint) if isinstance(mint, str) else mint,
             PUMP_FUN_PROGRAM,
         )
-        if result is None:
-            return False
         _, _, bonding_curve_account = result
-        return bonding_curve_account.virtual_sol_reserves == 0
+        logger.debug(f"Bonding curve account: {bonding_curve_account}")
+        return bonding_curve_account.complete
